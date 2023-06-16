@@ -36,3 +36,6 @@ vim.keymap.set('n', '<leader>b', ':TransparentToggle<CR>')
 
 -- toggle nvim tree
 vim.keymap.set('n', '<C-n>', ':NvimTreeToggle<CR>')
+
+-- remap visual block (lost for some reason?)
+vim.keymap.set('n', '<C-v>', '<C-q>')
