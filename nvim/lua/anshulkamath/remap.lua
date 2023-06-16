@@ -33,3 +33,6 @@ vim.keymap.set('n', '<leader><leader>', function() vim.cmd('so') end)
 
 -- toggle background
 vim.keymap.set('n', '<leader>b', ':TransparentToggle<CR>')
+
+-- toggle nvim tree
+vim.keymap.set('n', '<C-n>', ':NvimTreeToggle<CR>')
