@@ -30,3 +30,6 @@ vim.keymap.set('n', 'Q', '<nop>')
 vim.keymap.set('n', '<leader>s', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
 
 vim.keymap.set('n', '<leader><leader>', function() vim.cmd('so') end)
+
+-- toggle background
+vim.keymap.set('n', '<leader>b', ':TransparentToggle<CR>')

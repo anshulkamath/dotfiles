@@ -18,6 +18,9 @@ return require('packer').startup(function(use)
   use('theprimeagen/harpoon')
   use('mbbill/undotree')
   use('tpope/vim-fugitive')
+  use('EdenEast/nightfox.nvim')
+  use('xiyaowong/transparent.nvim')
+
   use {
     'nvim-tree/nvim-tree.lua',
     requires = {
