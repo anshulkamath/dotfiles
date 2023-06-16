@@ -5,3 +5,7 @@
 
 # alacritty
 !alacritty/**
+
+# tmux
+!tmux/**
+
