@@ -9,3 +9,7 @@
 # tmux
 !tmux/**
 
+# nvim
+!nvim/*
+!nvim/after/**
+!nvim/lua/**
