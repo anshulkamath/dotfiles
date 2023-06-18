@@ -20,13 +20,10 @@ return require('packer').startup(function(use)
   use('tpope/vim-fugitive')
   use('EdenEast/nightfox.nvim')
   use('xiyaowong/transparent.nvim')
-
+  use('christoomey/vim-tmux-navigator')
   use {
-    'startup-nvim/startup.nvim',
-    requires = {'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim'},
-    config = function()
-      require'startup'.setup({ theme = 'dashboard' })
-    end
+    'declancm/maximize.nvim',
+    config = function() require('maximize').setup() end
   }
 
   use {

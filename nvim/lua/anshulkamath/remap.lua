@@ -1,3 +1,4 @@
+local tmuxPrefix = '<C-a>'
 -- open project view
 vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
 
@@ -23,6 +24,9 @@ vim.keymap.set('x', '<leader>p', [['_dP]])
 vim.keymap.set({ 'n', 'v' }, '<leader>y', '\"+y')
 vim.keymap.set('n', '<leader>Y', '\"+Y')
 
+-- quick create new session
+vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
+
 -- don't ever press Q. honestly. it's the worst place in the universe
 vim.keymap.set('n', 'Q', '<nop>')
 
@@ -39,3 +43,6 @@ vim.keymap.set('n', '<C-n>', ':NvimTreeToggle<CR>')
 
 -- remap visual block (lost for some reason?)
 vim.keymap.set('n', '<C-v>', '<C-q>')
+
+-- quick quit
+vim.keymap.set('n', '<leader>q', ':wq<CR>')
