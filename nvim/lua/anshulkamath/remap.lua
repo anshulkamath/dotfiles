@@ -25,7 +25,7 @@ vim.keymap.set({ 'n', 'v' }, '<leader>y', '\"+y')
 vim.keymap.set('n', '<leader>Y', '\"+Y')
 
 -- quick create new session
-vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
+vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww open-project<CR>")
 
 -- don't ever press Q. honestly. it's the worst place in the universe
 vim.keymap.set('n', 'Q', '<nop>')

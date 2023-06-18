@@ -1,9 +1,16 @@
 #! /usr/bin/env bash
 
+temp_selected=$DEV_PATH
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    selected=$(find $DEV_PATHS -mindepth 1 -maxdepth 1 -type d | fzf)
+  while True; do
+    temp_selected=$(find $temp_selected -mindepth 1 -maxdepth 1 -type d | fzf)
+    if [[ $? -ne 0 ]]; then
+      break
+    fi
+    selected=$temp_selected
+  done
 fi
 
 if [[ -z $selected ]]; then
