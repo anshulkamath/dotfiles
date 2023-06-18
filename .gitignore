@@ -13,3 +13,6 @@
 !nvim/*
 !nvim/after/**
 !nvim/lua/**
+
+# bin
+!bin/*
