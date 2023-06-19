@@ -46,3 +46,6 @@ vim.keymap.set('n', '<C-v>', '<C-q>')
 
 -- quick quit
 vim.keymap.set('n', '<leader>q', ':wq<CR>')
+
+vim.keymap.set('n', '<C-w>s', '<C-w>s<C-w>j')
+vim.keymap.set('n', '<C-w>v', '<C-w>v<C-w>l')
