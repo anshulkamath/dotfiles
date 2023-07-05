@@ -1,0 +1,26 @@
+require('hardtime').setup({
+  disable_mouse = true,
+  max_time = 1000,
+  max_count = 2,
+  notification = true,
+  restricted_keys = {
+      ["h"] = { "n", "x" },
+      ["j"] = { "n", "x" },
+      ["k"] = { "n", "x" },
+      ["l"] = { "n", "x" },
+      ["-"] = { "n", "x" },
+      ["+"] = { "n", "x" },
+      ["gj"] = { "n", "x" },
+      ["gk"] = { "n", "x" },
+      ["<CR>"] = { "n", "x" },
+      ["<C-M>"] = { "n", "x" },
+      ["<C-N>"] = { "n", "x" },
+      ["<C-P>"] = { "n", "x" },
+   },
+  disabled_keys = {
+    ["<UP>"] = { "n", "v" },
+    ["<DOWN>"] = { "n", "v" },
+    ["<LEFT>"] = { "n", "v" },
+    ["<RIGHT>"] = { "n", "v" },
+  },
+})

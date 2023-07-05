@@ -21,6 +21,8 @@ return require('packer').startup(function(use)
   use('EdenEast/nightfox.nvim')
   use('xiyaowong/transparent.nvim')
   use('christoomey/vim-tmux-navigator')
+  use('tpope/vim-surround')
+  use('m4xshen/hardtime.nvim')
 
   use {
     'declancm/maximize.nvim',
