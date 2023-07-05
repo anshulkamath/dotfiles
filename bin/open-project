@@ -1,29 +1,49 @@
 #! /usr/bin/env bash
+term_signal='__TERM__'
+forward_signal='__FORWARD__'
+backward_signal='__BACKWARD__'
 
-find_flags='-type d -maxdepth 1 -mindepth 1 -not -path "*.git"'
-forward='reload(find {} $find_flags)'
-select='execute(echo {})+abort'
+find_flags='-type d -maxdepth 1 -mindepth 1 -not -path *.git'
+forward="execute(echo \"{}$forward_signal\")+abort"
+backward="execute(echo \"..$backward_signal\")+abort"
+select="execute(echo \"{}$term_signal\")+abort"
+terminate="execute(echo \"$term_signal\")+abort"
+
+project_stack=("$DEV_PATH")
+num_elems=1
+let last_idx=0
 
 if [[ $# -eq 1 ]]; then
   selected=$1
 else
-  selected=$(find $DEV_PATH $find_flags | fzf --bind="right:$forward,tab:$forward,enter:$select")
+  while True; do
+    let last_idx="${#project_stack[@]} - 1"
+    temp_selected=$(eval "find ${project_stack[$last_idx]} $find_flags" | fzf --bind="right:$forward,tab:$forward,enter:$select,ctrl-c:$terminate,esc:$terminate,btab:$backward,left:$backward")
+
+    if [[ $temp_selected == *$term_signal ]]; then
+      selected=${temp_selected%$term_signal}
+      break
+    fi
+
+    new_dir="${temp_selected%%_*}"
+    if [[ $temp_selected == *$forward_signal ]]; then
+      project_stack+=("$new_dir")
+    elif [[ $temp_selected == *$backward_signal ]]; then
+      if [[ $last_idx -lt 0 ]]; then
+        continue
+      fi
+      new_dir="${project_stack[$last_idx]}"
+      unset project_stack[$last_idx]
+    fi
+    
+  done
 fi
+
+selected=$(sed -e "s/^'//" -e "s/'$//" <<< $selected)
 
 if [[ -z $selected ]]; then
   exit 0
 fi
 
 selected_name=$(basename "$selected" | tr . _)
-tmux_running=$(pgrep tmux)
-
-if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
-  tmux new-session -s $selected_name -c $selected
-  exit 0
-fi
-
-if ! tmux has-session -t=$selected_name 2> /dev/null; then
-  tmux new-session -ds $selected_name -c $selected
-fi
-
-tmux switch-client -t $selected_name
+tmux new -A -s $selected_name -c $selected
