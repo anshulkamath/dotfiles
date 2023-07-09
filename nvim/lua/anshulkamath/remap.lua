@@ -6,6 +6,10 @@ vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
 vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")
 vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")
 
+-- copy to system clipboard
+vim.keymap.set({"n", "v"}, "<leader>y", [["+y]])
+vim.keymap.set("n", "<leader>Y", [["+Y]])
+
 -- joining lines keeps cursor focus
 vim.keymap.set('n', 'J', 'mzJ`z')
 
@@ -53,3 +57,8 @@ vim.keymap.set('n', '<C-w>v', '<C-w>v<C-w>l')
 vim.keymap.set('n', '<leader>k', ':bprevious<CR>')
 vim.keymap.set('n', '<leader>j', ':bnext<CR>')
 
+vim.keymap.set('n', '<C-h>', ':TmuxNavigateLeft<CR>',   { silent = true, noremap = true })
+vim.keymap.set('n', '<C-j>', ':TmuxNavigateDown<CR>',   { silent = true, noremap = true })
+vim.keymap.set('n', '<C-k>', ':TmuxNavigateUp<CR>',     { silent = true, noremap = true })
+vim.keymap.set('n', '<C-l>', ':TmuxNavigateRight<CR>',  { silent = true, noremap = true })
+vim.keymap.set('n', '<C-\\>', ':TmuxNavigatePrevious<CR>',  { silent = true, noremap = true })
