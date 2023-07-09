@@ -1,7 +1,7 @@
 require('hardtime').setup({
-  disable_mouse = true,
+  disable_mouse = false,
   max_time = 1000,
-  max_count = 2,
+  max_count = 5,
   notification = true,
   restricted_keys = {
       ["h"] = { "n", "x" },
