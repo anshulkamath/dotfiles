@@ -25,6 +25,20 @@ return require('packer').startup(function(use)
   use('m4xshen/hardtime.nvim')
   use('jose-elias-alvarez/null-ls.nvim')
   use('jay-babu/mason-null-ls.nvim')
+  use('mfussenegger/nvim-dap')
+
+  use {
+    'leoluz/nvim-dap-go',
+    requires = 'mfussenegger/nvim-dap'
+  }
+
+  use {
+    "olexsmir/gopher.nvim",
+    requires = { -- dependencies
+      "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter",
+    },
+  }
 
   use {
     'declancm/maximize.nvim',
