@@ -26,6 +26,7 @@ return require('packer').startup(function(use)
   use('jose-elias-alvarez/null-ls.nvim')
   use('jay-babu/mason-null-ls.nvim')
   use('mfussenegger/nvim-dap')
+  use('mg979/vim-visual-multi')
 
   use {
     'leoluz/nvim-dap-go',

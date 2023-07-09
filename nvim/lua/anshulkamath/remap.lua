@@ -39,7 +39,7 @@ vim.keymap.set('n', '<leader><leader>', function() vim.cmd('so') end)
 vim.keymap.set('n', '<leader>b', ':TransparentToggle<CR>')
 
 -- toggle nvim tree
-vim.keymap.set('n', '<C-n>', ':NvimTreeToggle<CR>')
+vim.keymap.set('n', '<C-t>', ':NvimTreeToggle<CR>')
 
 -- remap visual block (lost for some reason?)
 vim.keymap.set('n', '<C-v>', '<C-q>')
@@ -49,3 +49,7 @@ vim.keymap.set('n', '<leader>q', ':wq<CR>')
 
 vim.keymap.set('n', '<C-w>s', '<C-w>s<C-w>j')
 vim.keymap.set('n', '<C-w>v', '<C-w>v<C-w>l')
+
+vim.keymap.set('n', '<leader>k', ':bprevious<CR>')
+vim.keymap.set('n', '<leader>j', ':bnext<CR>')
+
