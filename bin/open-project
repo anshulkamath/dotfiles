@@ -35,15 +35,28 @@ else
       new_dir="${project_stack[$last_idx]}"
       unset project_stack[$last_idx]
     fi
-    
   done
 fi
 
 selected=$(sed -e "s/^'//" -e "s/'$//" <<< $selected)
+selected_name=$(basename "$selected" | tr . _)
+tmux_running=$(pgrep tmux)
 
-if [[ -z $selected ]]; then
-  exit 0
+# if tmux is not running, create the session and exit the script
+if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+    tmux new-session -s $selected_name -c $selected
+    exit 0
 fi
 
-selected_name=$(basename "$selected" | tr . _)
-tmux new -A -s $selected_name -c $selected
+# if tmux is running but the session does not exist, create a new detached session
+if ! tmux has-session -t=$selected_name 2> /dev/null; then
+    tmux new-session -ds $selected_name -c $selected
+fi
+
+# attach to the new detached session
+tmux switch-client -t $selected_name 2> /dev/null
+
+# detect failure (if tmux is not in session) and attach in that case 
+if [ $? != 0 ]; then
+  tmux attach -t $selected_name
+fi
