@@ -110,6 +110,6 @@ key_bindings:
   - { key: Left,     mods: Alt,       chars: "\x1bb"  } # one word left
   - { key: Right,    mods: Alt,       chars: "\x1bf"  } # one word right
   - { key: T,        mods: Command,   action: SpawnNewInstance  } # create new instance
-  - { key: Comma,    mods: Command,   command: { program: "sh", args: ["c", "~/.config/alacritty/alacritty.yml"] } }
-  - { key: K,        mods: Command,   chars: "\x0c"} # clear text on Cmd+K
-
+  - { key: Comma,    mods: Command,   command: { program: "sh", args: ["c", "~/.config/alacritty,alacritty.yml"] } }
+  - { key: K,        mods: Command,   chars: "\x0c" }
+  - { key: K,        mods: Command,   chars: "\x11" }
