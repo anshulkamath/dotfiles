@@ -29,6 +29,13 @@ return require('packer').startup(function(use)
   use('mg979/vim-visual-multi')
 
   use {
+    'numToStr/Comment.nvim',
+    config = function()
+      require('Comment').setup()
+    end
+  }
+
+  use {
     'leoluz/nvim-dap-go',
     requires = 'mfussenegger/nvim-dap'
   }
