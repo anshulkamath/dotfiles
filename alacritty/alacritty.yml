@@ -106,9 +106,9 @@ colors:
 # using Mac's 'command' to control your tmux.
 # A great reference: https://arslan.io/2018/02/05/gpu-accelerated-terminal-alacritty/#make-alacritty-feel-like-iterm2
 key_bindings:
-  - { key: Back,     mods: Alt,       chars: "\x17\x1bf"   } # delete word/line
   - { key: Left,     mods: Alt,       chars: "\x1bb"  } # one word left
   - { key: Right,    mods: Alt,       chars: "\x1bf"  } # one word right
+  - { key: Back,     mods: Command,   chars: "\x15" }
   - { key: T,        mods: Command,   action: SpawnNewInstance  } # create new instance
   - { key: Comma,    mods: Command,   command: { program: "sh", args: ["c", "~/.config/alacritty,alacritty.yml"] } }
   - { key: K,        mods: Command,   chars: "\x0c" }
