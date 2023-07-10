@@ -49,18 +49,6 @@ return require('packer').startup(function(use)
   }
 
   use {
-    'declancm/maximize.nvim',
-    config = function() require('maximize').setup() end
-  }
-
-  use {
-    'nvim-tree/nvim-tree.lua',
-    requires = {
-      'nvim-tree/nvim-web-devicons', -- optional
-    },
-  }
-
-  use {
     'VonHeikemen/lsp-zero.nvim',
     branch = 'v2.x',
     requires = {
