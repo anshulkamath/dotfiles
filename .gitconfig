@@ -1,0 +1,7 @@
+[user]
+	name = Anshul Kamath
+	email = anshulkam@gmail.com
+[http]
+	postBuffer = 157286400
+[core]
+	excludesfile = ~/.gitignore-global
