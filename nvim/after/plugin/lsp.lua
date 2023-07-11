@@ -13,24 +13,6 @@ lsp.ensure_installed({
 -- Fix Undefined global 'vim'
 lsp.nvim_workspace()
 
-local cmp = require("cmp")
-local cmp_select = { behavior = cmp.SelectBehavior.Select }
-local cmp_mappings = lsp.defaults.cmp_mappings({
-  ["<C-p>"] = cmp.mapping.select_prev_item(cmp_select),
-  ["<C-n>"] = cmp.mapping.select_next_item(cmp_select),
-  ["<C-y>"] = cmp.mapping.confirm({ select = true }),
-  ["<CR>"] = cmp.mapping.confirm({ select = true }),
-  ["<S-Tab>"] = nil,
-})
-
-cmp.setup({
-  window = {
-    completion = cmp.config.window.bordered(),
-    documentation = cmp.config.window.bordered(),
-  },
-  mapping = cmp_mappings,
-})
-
 lsp.set_preferences({
   suggest_lsp_servers = false,
   sign_icons = {
@@ -46,6 +28,12 @@ lsp.on_attach(function(client, bufnr)
 
   vim.keymap.set("n", "gd", function()
     vim.lsp.buf.definition()
+  end, opts)
+  vim.keymap.set("n", "gD", function()
+    vim.lsp.buf.declaration()
+  end, opts)
+  vim.keymap.set("n", "gi", function()
+    vim.lsp.buf.implementation()
   end, opts)
   vim.keymap.set("n", "K", function()
     vim.lsp.buf.hover()
@@ -90,6 +78,24 @@ lsp.format_mapping("gf", format_opts)
 lsp.format_on_save(format_opts)
 
 lsp.setup()
+
+local cmp = require("cmp")
+local cmp_select = { behavior = cmp.SelectBehavior.Select }
+local cmp_mappings = lsp.defaults.cmp_mappings({
+  ["<C-k>"] = cmp.mapping.select_prev_item(cmp_select),
+  ["<C-j>"] = cmp.mapping.select_next_item(cmp_select),
+  ["<C-y>"] = cmp.mapping.confirm({ select = true }),
+  ["<CR>"] = cmp.mapping.confirm({ select = true }),
+  ["<S-Tab>"] = nil,
+})
+
+cmp.setup({
+  window = {
+    completion = cmp.config.window.bordered(),
+    documentation = cmp.config.window.bordered(),
+  },
+  mapping = cmp_mappings,
+})
 
 vim.diagnostic.config({
   virtual_text = true,
