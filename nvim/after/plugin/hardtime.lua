@@ -23,4 +23,5 @@ require('hardtime').setup({
     ["<LEFT>"] = { "n", "v" },
     ["<RIGHT>"] = { "n", "v" },
   },
+  disabled_filetypes = { "qf", "netrw", "NvimTree", "lazy", "mason", "undotree", "fugitive" },
 })
