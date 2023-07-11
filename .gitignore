@@ -11,11 +11,12 @@
 tmux/plugins/
 
 # nvim
-!nvim/*
-!nvim/after/**
-!nvim/lua/**
+!nvim/
+!nvim/**
+nvim/plugin
 
 # bin
 !bin/*
 
 !README.md
+!.gitignore
