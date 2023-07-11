@@ -51,11 +51,18 @@ vim.keymap.set('n', '<leader>q', ':wq<CR>')
 vim.keymap.set('n', '<C-w>s', '<C-w>s<C-w>j')
 vim.keymap.set('n', '<C-w>v', '<C-w>v<C-w>l')
 
-vim.keymap.set('n', '<leader>k', ':bprevious<CR>')
-vim.keymap.set('n', '<leader>j', ':bnext<CR>')
+-- navigating buffer list
+vim.keymap.set('n', '[B', ':bfirst<CR>')
+vim.keymap.set('n', ']B', ':blast<CR>')
+vim.keymap.set('n', '[b', ':bprevious<CR>')
+vim.keymap.set('n', ']b', ':bnext<CR>')
 
+-- vim-tmux-navigator remaps
 vim.keymap.set('n', '<C-h>', ':TmuxNavigateLeft<CR>',   { silent = true, noremap = true })
 vim.keymap.set('n', '<C-j>', ':TmuxNavigateDown<CR>',   { silent = true, noremap = true })
 vim.keymap.set('n', '<C-k>', ':TmuxNavigateUp<CR>',     { silent = true, noremap = true })
 vim.keymap.set('n', '<C-l>', ':TmuxNavigateRight<CR>',  { silent = true, noremap = true })
 vim.keymap.set('n', '<C-\\>', ':TmuxNavigatePrevious<CR>',  { silent = true, noremap = true })
+
+-- insert mode shortcuts
+vim.keymap.set('i', 'jk', '<Esc>')
