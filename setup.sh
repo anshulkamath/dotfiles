@@ -5,5 +5,10 @@ ln -sf "$wd/alacritty" ~/.config
 ln -sf "$wd/nvim" ~/.config
 ln -sf "$wd/tmux" ~/.config
 ln -sf "$wd/bin" ~/.config
-ln -sf "$wd/.gitconfig" ~
-ln -sf "$wd/.gitignore-global" ~
+
+if [[ ! -d /usr/local/bin ]]; then
+  mkdir -p /usr/local/bin
+  echo "Created /usr/local/bin. Make sure that it is in your path"
+fi
+
+ln -sf "$wd/create-session" /usr/local/bin

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+dir=$(pwd | rev | cut -d / -f 1 | rev)
+tmux new-session -s $dir
