@@ -17,4 +17,4 @@ if [[ ! -d $bin ]]; then
   echo "Created $bin. Make sure that it is in your path"
 fi
 
-for d in $(ls bin); do cp -n $wd/bin/$d $bin; done
+for d in $(ls bin); do ln -sf $wd/bin/$d $bin; done
