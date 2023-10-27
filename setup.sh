@@ -1,5 +1,6 @@
 #!/bin/bash
 wd=$(pwd)
+bin=/usr/local/bin
 
 ln -sf "$wd/alacritty" ~/.config
 ln -sf "$wd/nvim" ~/.config
@@ -11,9 +12,9 @@ mkdir -p ~/.config/git
 ln -sf "$wd/gitignore-global" ~/.config/git/ignore
 git config --global core.excludesFile ~/.config/git/ignore
 
-if [[ ! -d /usr/local/bin ]]; then
-  mkdir -p /usr/local/bin
-  echo "Created /usr/local/bin. Make sure that it is in your path"
+if [[ ! -d $bin ]]; then
+  mkdir -p $bin
+  echo "Created $bin. Make sure that it is in your path"
 fi
 
-ln -sf "$wd/create-session" /usr/local/bin
+for d in $(ls bin); do cp -n $wd/bin/$d $bin; done
