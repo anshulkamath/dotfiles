@@ -14,7 +14,10 @@ git config --global core.excludesFile ~/.config/git/ignore
 
 if [[ ! -d $bin ]]; then
   mkdir -p $bin
-  echo "Created $bin. Make sure that it is in your path"
+  echo $PATH | grep ":$bin:" >> /dev/null
+  if [ $? -ne 0 ]; then
+    echo "export PATH=\$PATH:$bin" >> ~/.bashrc
+  fi
 fi
 
 for d in $(ls bin); do ln -sf $wd/bin/$d $bin; done
