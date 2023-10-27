@@ -1,0 +1,24 @@
+#!/bin/bash
+
+rename_tab() {
+  if [ -z $KITTY_WINDOW_ID ]; then
+    return 1;
+  fi
+
+  kitty @ set-tab-title $1
+}
+
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 [session-name]"
+fi
+
+session_name=$1
+
+tmux has-session -t $session_name 2> /dev/null
+if [ $? != 0 ]; then
+  echo "Unable to find session named $session_name. Please try again"
+  exit 1
+fi
+
+rename_tab $session_name
+tmux attach -t $session_name
