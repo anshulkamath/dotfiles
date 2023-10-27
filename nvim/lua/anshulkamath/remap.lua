@@ -66,3 +66,6 @@ vim.keymap.set('n', '<C-\\>', ':TmuxNavigatePrevious<CR>',  { silent = true, nor
 
 -- insert mode shortcuts
 vim.keymap.set('i', 'jk', '<Esc>')
+
+-- automatic chmod
+vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
