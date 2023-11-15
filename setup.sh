@@ -20,4 +20,4 @@ if [[ ! -d $bin ]]; then
   fi
 fi
 
-for d in $(ls bin); do ln -sf $wd/bin/$d $bin; done
+for d in $(ls bin); do chmod +x $wd/bin/$d; ln -sf $wd/bin/$d $bin; done
