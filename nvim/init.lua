@@ -1,2 +1,2 @@
-require('anshulkamath.core')
-require('anshulkamath.lazy')
+require("anshulkamath.core")
+require("anshulkamath.lazy")
