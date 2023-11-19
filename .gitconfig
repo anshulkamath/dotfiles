@@ -5,3 +5,4 @@
 	postBuffer = 157286400
 [core]
 	excludesfile = ~/.gitignore-global
+        editor = nvim
