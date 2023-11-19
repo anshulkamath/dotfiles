@@ -17,6 +17,6 @@ require("lazy").setup({ { import = "anshulkamath.plugins" }, { import = "anshulk
 		notify = false,
 	},
 	change_detection = {
-		-- notify = false,
+		notify = false,
 	},
 })
