@@ -1,7 +1,7 @@
 local keymap = vim.keymap
 
--- use jk to exit insert mode
-keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode with jk" })
+-- use jj to exit insert mode
+keymap.set("i", "jj", "<Esc>", { desc = "Exit insert mode with jj" })
 
 -- increment/decrement numbers
 keymap.set("n", "<leader>+", "<C-a>", { desc = "Increment number" })
