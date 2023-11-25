@@ -1,7 +1,7 @@
 local keymap = vim.keymap
 
--- use jj to exit insert mode
-keymap.set("i", "jj", "<Esc>", { desc = "Exit insert mode with jj" })
+-- use jk to exit insert mode
+keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode with jk" })
 
 -- increment/decrement numbers
 keymap.set("n", "<leader>+", "<C-a>", { desc = "Increment number" })
@@ -48,3 +48,7 @@ keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split window vertically" }) --
 keymap.set("n", "<leader>sh", "<C-w>s", { desc = "Split window horizontally" }) -- split window horizontally
 keymap.set("n", "<leader>se", "<C-w>=", { desc = "Make splits equal size" }) -- make split windows equal width & height
 keymap.set("n", "<leader>sx", "<cmd>close<CR>", { desc = "Close current split" }) -- close current split window
+
+-- better paging
+keymap.set("n", "<C-f>", "25<C-d>zz", { desc = "Page down 25% " })
+keymap.set("n", "<C-b>", "25<C-u>zz", { desc = "Page up 25% " })
