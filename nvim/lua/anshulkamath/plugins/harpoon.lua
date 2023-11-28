@@ -15,7 +15,7 @@ return {
 		keymap.set("n", "]h", ui.nav_next, { desc = "Go to next harpoon mark" })
 		keymap.set("n", "[h", ui.nav_prev, { desc = "Go to previous harpoon mark" })
 
-		keymap.set("n", "<leader>hf", function()
+		keymap.set("n", "<leader>fh", function()
 			ui.nav_file(tonumber(vim.fn.input("Harpoon buffer:")))
 		end)
 	end,
