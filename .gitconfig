@@ -6,3 +6,28 @@
 [core]
 	excludesfile = ~/.gitignore-global
         editor = nvim
+[alias]
+	amend = commit --amend
+	c = commit
+	co = checkout
+	unstage = restore --staged
+        lg = !"git lg1"
+
+	# source https://stackoverflow.com/a/9074343/1079869
+	lg1 = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+	lg2 = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+
+	# safe force push
+	please = push --force-with-lease
+
+	# use the commit message from the undone commit
+	redo = commit -c ORIG_HEAD
+
+	# undo previous commit
+	undo = reset HEAD~
+
+[url "ssh://git@github.corp.qc"]
+        insteadOf = https://github.corp.qc
+
+[rerere]
+        enabled = true
