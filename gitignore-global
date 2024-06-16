@@ -1,5 +1,9 @@
+# ANSHUL - YOU ARE EDITING THE GLOBAL GITIGNORE
+# MAKE SURE YOU DIDN'T MISTYPE .gitignore!
 .DS_Store
 .vscode
 *.code-workspace
 go.work**
 .devcontainer
+.python-version
+.java-version
