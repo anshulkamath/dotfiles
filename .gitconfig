@@ -26,7 +26,11 @@
 	# undo previous commit
 	undo = reset HEAD~
 
+	# abbreviated logs
 	peek = log --oneline --abbrev
+
+	# get only commit messages from logs
+	journal = log --format=%B
 
 [url "ssh://git@github.corp.qc"]
         insteadOf = https://github.corp.qc

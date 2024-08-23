@@ -7,3 +7,4 @@ go.work**
 .devcontainer
 .python-version
 .java-version
+.sdkmanrc
