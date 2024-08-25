@@ -1,23 +1,18 @@
 #!/bin/bash
+
 wd=$(pwd)
-bin=/usr/local/bin
+xdg_config_home="$HOME/.config"
 
-ln -sf "$wd/alacritty" ~/.config
-ln -sf "$wd/nvim" ~/.config
-ln -sf "$wd/tmux" ~/.config
-ln -sf "$wd/bin" ~/.config
-ln -sf "$wd/kitty" ~/.config
+# link everything to $XDG_CONFIG_HOME
+for d in $(ls -d */); do 
+  test -L "$xdg_config_home/$d" || ln -sfn "$wd/$d" "$xdg_config_home"
+done
 
-mkdir -p ~/.config/git
-ln -sf "$wd/gitignore-global" ~/.config/git/ignore
-git config --global core.excludesFile ~/.config/git/ignore
+# link all custom binaries to path
+for d in $(find "bin" -type f); do chmod +x $d; done
 
-if [[ ! -d $bin ]]; then
-  mkdir -p $bin
-  echo $PATH | grep ":$bin:" >> /dev/null
-  if [ $? -ne 0 ]; then
-    echo "export PATH=\$PATH:$bin" >> ~/.bashrc
-  fi
+# assert local bin is in path , which is not necessarily be true on all systems?
+if [[ $PATH != *":$bin"* ]]; then
+  echo "export PATH=\$PATH:$bin" >> ~/.bashrc
 fi
 
-for d in $(ls bin); do chmod +x $wd/bin/$d; ln -sf $wd/bin/$d $bin; done
