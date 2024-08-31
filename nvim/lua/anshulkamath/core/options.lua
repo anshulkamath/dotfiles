@@ -22,15 +22,17 @@ opt.undofile = true
 
 -- turn off search highlighting
 opt.hlsearch = false
-
--- turn on incremental search
 opt.incsearch = true
+opt.ignorecase = true
+opt.smartcase = true
+opt.showmatch = true
 
 -- split windows
 opt.splitright = true -- split vertical window to the right
 opt.splitbelow = true -- split horizontal window to the bottom
 
 opt.termguicolors = true
+opt.ttyfast = true
 
 opt.scrolloff = 8
 opt.signcolumn = "yes"

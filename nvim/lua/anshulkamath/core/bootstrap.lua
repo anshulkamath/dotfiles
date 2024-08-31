@@ -11,7 +11,12 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-require("lazy").setup({ { import = "anshulkamath.plugins" }, { import = "anshulkamath.plugins.lsp" } }, {
+require("lazy").setup({
+	spec = {
+		{ import = "anshulkamath.plugins" },
+		{ import = "anshulkamath.lsp" },
+	},
+}, {
 	checker = {
 		enabled = true,
 		notify = false,
