@@ -34,17 +34,16 @@
         # show config
         cat-config = config --list --show-origin --show-scope
 
-[url "ssh://git@github.corp.qc"]
-        insteadOf = https://github.corp.qc
-
 [rerere]
         enabled = true
 
 [rebase]
 	updateRefs = true
+
 [credential]
 	helper = 
 	helper = /usr/local/share/gcm-core/git-credential-manager
+
 [credential "https://dev.azure.com"]
 	useHttpPath = true
 

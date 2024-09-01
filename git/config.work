@@ -1,3 +1,7 @@
 [user]
 	name = Anshul Kamath
 	email = anshul.kamath@quantcast.com
+
+[url "ssh://git@github.corp.qc"]
+        insteadOf = https://github.corp.qc
+
