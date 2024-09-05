@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# directories
+export DEVELOPER="$HOME/Developer"
+export CONF="$HOME/.config"
+
+# config
+alias dotfiles='cd $DEVELOPER/dotfiles'
+alias bashrc='vim $CONF/bash/bashrc && source $_'
+alias aliases='vim $CONF/bash/aliases && source $_'
+alias gitconfig='vim $CONF/git/config'
+alias gitignore='vim $CONF/git/ignore'
+
+# source work file if exists
+test -f "$CONF/bash/aliases.work" && source $_
+
+safe_attach() {
+  if [[ $# -ne 1 ]]; then
+    echo "Usage: safe_attach [session_name]"
+    return 1
+  fi
+
+  tmux has-session -t $1 2> /dev/null
+  if [ $? -eq 1 ]; then
+    # set environment variable for all successive tmux splits and current
+    # split (different cases, since current split gets created automatically
+    tmux new-session -ds $1 \; \
+      setenv ENVIRONMENT $1 \; \
+      send-keys -t 0 "export ENVIRONMENT="$1 C-m C-l \;
+  fi
+
+  attach $1
+}
+
