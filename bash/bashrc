@@ -1,0 +1,30 @@
+eval $(/opt/homebrew/bin/brew shellenv)
+
+export PATH="$HOME/.jenv/bin:$PATH"
+export PATH="$PATH:$(go env GOPATH)/bin"
+export PATH="$PATH:$HOME/local/bin"
+
+export BASH_SILENCE_DEPRECATION_WARNING=1
+export PYENV_ROOT=/opt/homebrew/bin
+
+# we really should not do this, but whatever
+export TERM=xterm-256color
+
+source ~/.config/bash/aliases
+
+test -f ~/.git-completion.bash && . $_ 2> /dev/null
+
+if which pyenv 2> /dev/null; then
+	eval "$(pyenv init -)"
+fi
+pyenv global 3.11.9
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
+
+# Dedupe PATH, preserving the first of each PATH entry
+# This is a safe operation for entries relatively ordered to the beginning of the path
+# export PATH=$(echo $PATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's/:$//')
+
