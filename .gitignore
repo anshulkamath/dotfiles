@@ -1,3 +1,11 @@
+# nvim
 nvim/plugin
+
+# tmux
 tmux/plugins
 **\.work
+
+# vim
+vim/plugged
+vim/autoload
+vim/undodir

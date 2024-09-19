@@ -17,6 +17,17 @@ test -L "$xdg_config_home/tmux" || ln -sfn "$PWD/tmux" $_
 test -L "$HOME/.bashrc" || ln -sfn "$xdg_config_home/bash/bashrc" $_
 test -L "$HOME/.bash_profile" || ln -sfn "$xdg_config_home/bash/bash_profile" $_
 
+# symlink vim/ to ~/.vim
+test -L "$HOME/.vim" || ln -sfn "$PWD/vim" $_
+
+# vim plugins
+if [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
+	curl -fLo "$HOME/.vim/autoload/plug.vim" --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  vim +'PlugInstall --sync' +qa
+fi
+
+vim -es +'silent! PlugInstall --sync' +qa
+
 # make all custom binaries executable
 for d in $(find "bin" -type f); do chmod +x $d; done
 

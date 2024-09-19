@@ -10,6 +10,7 @@ alias bashrc='vim $CONF/bash/bashrc && source $_'
 alias aliases='vim $CONF/bash/aliases && source $_'
 alias gitconfig='vim $CONF/git/config'
 alias gitignore='vim $CONF/git/ignore'
+alias vimplugs='vim $HOME/.vim/init/plugins.vim'
 
 # source work file if exists
 test -f "$CONF/bash/aliases.work" && source $_

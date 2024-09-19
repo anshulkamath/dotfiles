@@ -1,10 +1,13 @@
 [user]
 	name = Anshul Kamath
 	email = anshulkam@gmail.com
+
 [http]
 	postBuffer = 157286400
+
 [core]
-        editor = nvim
+        editor = vim
+
 [alias]
 	amend = commit --amend
 	c = commit
