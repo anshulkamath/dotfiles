@@ -11,6 +11,11 @@ alias aliases='vim $CONF/bash/aliases && source $_'
 alias gitconfig='vim $CONF/git/config'
 alias gitignore='vim $CONF/git/ignore'
 alias vimplugs='vim $HOME/.vim/init/plugins.vim'
+alias vimmaps='vim $HOME/.vim/init/keymaps.vim'
+alias vimsync="vim +'PlugInstall --sync' +qa"
+
+alias vimfmt="vim -c 'set filetype=gitcommit' /tmp/commit"
+alias vimpad="vim /tmp/notepad"
 
 # source work file if exists
 test -f "$CONF/bash/aliases.work" && source $_
