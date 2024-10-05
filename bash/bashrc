@@ -14,17 +14,20 @@ source ~/.config/bash/aliases
 
 test -f ~/.git-completion.bash && . $_ 2> /dev/null
 
+if which fzf 2> /dev/null; then
+	eval "$(fzf --bash)"
+fi
+
 if which pyenv 2> /dev/null; then
 	eval "$(pyenv init -)"
+	pyenv global 3.11.9
 fi
-pyenv global 3.11.9
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
-
-# Dedupe PATH, preserving the first of each PATH entry
-# This is a safe operation for entries relatively ordered to the beginning of the path
-# export PATH=$(echo $PATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's/:$//')
-
