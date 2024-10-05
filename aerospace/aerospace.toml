@@ -219,10 +219,6 @@ if.app-id = 'com.cisco.anyconnect.gui'
 run = 'layout floating'
 
 [[on-window-detected]]
-if.app-id = 'com.apple.Finder'
-run = 'layout floating'
-
-[[on-window-detected]]
 if.app-id = 'com.apple.Music'
 run = ['move-node-to-workspace M']
 
@@ -240,5 +236,16 @@ run = ['move-node-to-workspace T']
 
 [[on-window-detected]]
 if.app-id = 'com.apple.finder'
-run = ['layout floating', 'move-node-to-workspace F']
+run = 'layout floating'
 
+[[on-window-detected]]
+if.app-id = 'com.jetbrains.intellij.ce'
+run = ['move-node-to-workspace I']
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Notes'
+run = ['layout floating']
+
+[[on-window-detected]]
+if.app-id = 'com.spotify.client'
+run = ['move-node-to-workspace M']
