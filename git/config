@@ -6,14 +6,14 @@
 	postBuffer = 157286400
 
 [core]
-        editor = vim
+	editor = vim
 
 [alias]
 	amend = commit --amend
 	c = commit
 	co = checkout
 	unstage = restore --staged
-        lg = !"git lg1"
+	lg = !"git lg1"
 
 	# source https://stackoverflow.com/a/9074343/1079869
 	lg1 = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
@@ -34,21 +34,20 @@
 	# get only commit messages from logs
 	journal = log --format=%B
 
-        # show config
-        cat-config = config --list --show-origin --show-scope
+	# show config
+	cat-config = config --list --show-origin --show-scope
 
 [rerere]
-        enabled = true
+	enabled = true
 
 [rebase]
 	updateRefs = true
 
 [credential]
-	helper = 
 	helper = /usr/local/share/gcm-core/git-credential-manager
 
 [credential "https://dev.azure.com"]
 	useHttpPath = true
 
 [includeIf "gitdir:~/Developer/quantcast/"]
-        path = ~/.config/git/config.work  
+	path = ~/.config/git/config.work
