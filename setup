@@ -1,6 +1,7 @@
 #!/bin/bash
 
 xdg_config_home="$HOME/.config"
+bin="$xdg_config_home/bin"
 
 mkdir -p "$xdg_config_home"
 
@@ -31,8 +32,8 @@ vim -es +'silent! PlugInstall --sync' +qa
 # make all custom binaries executable
 for d in $(find "bin" -type f); do chmod +x $d; done
 
-# assert local bin is in path , which is not necessarily be true on all systems?
+# assert that our local config is in the path
 if [[ $PATH != *":$bin"* ]]; then
-  echo "export PATH=\$PATH:$bin" >> ~/.bashrc
+  echo "export PATH=\"\$PATH:$bin\"" >> ~/.bashrc
 fi
 
