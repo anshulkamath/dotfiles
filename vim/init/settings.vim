@@ -25,3 +25,5 @@ set showmatch
 " Line numbering
 set nu rnu
 
+" Turn off startup message
+set shortmess+=I
