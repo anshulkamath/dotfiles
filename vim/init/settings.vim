@@ -27,3 +27,6 @@ set nu rnu
 
 " Turn off startup message
 set shortmess+=I
+
+" Allow to scroll off the buffer a little
+set scrolloff=5
