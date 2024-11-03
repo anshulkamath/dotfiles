@@ -10,6 +10,8 @@
 
 [alias]
 	amend = commit --amend
+	fixup = commit --fixup
+	rebase-fixup = rebase --autosquash -i
 	c = commit
 	co = checkout
 	unstage = restore --staged
@@ -43,6 +45,12 @@
 
 	# safe go-to updated master
 	cu-master = catchup origin master
+	cu-main = catchup origin main
+
+	overview = !"git peek -5 ; echo ; git status -s"
+	ov = overview
+
+	ping = ls-remote
 
 [rerere]
 	enabled = true

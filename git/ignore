@@ -16,3 +16,8 @@ go.work**
 /local
 venv
 .netrwhist
+
+# intellij
+*iml
+*iws
+*ipr
