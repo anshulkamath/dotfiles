@@ -5,6 +5,7 @@ export DEVELOPER="$HOME/Developer"
 export CONF="$HOME/.config"
 
 # config
+alias dev='cd $DEVELOPER'
 alias dotfiles='cd $DEVELOPER/dotfiles'
 alias bashrc='vim $CONF/bash/bashrc && source $_'
 alias aliases='vim $CONF/bash/aliases && source $_'

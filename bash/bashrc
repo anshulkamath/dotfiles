@@ -13,6 +13,8 @@ source ~/.config/bash/aliases
 
 test -f ~/.git-completion.bash && . $_ 2> /dev/null
 
+test -f ~/.config/bash/envs.work && . $_ 2> /dev/null
+
 if which fzf 2> /dev/null; then
 	eval "$(fzf --bash)"
 fi
