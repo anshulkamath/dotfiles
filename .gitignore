@@ -9,3 +9,11 @@ tmux/plugins
 vim/plugged
 vim/autoload
 vim/undodir
+
+# xdg config
+/local
+/cache
+
+# zsh
+.zcompdump
+.zsh_history

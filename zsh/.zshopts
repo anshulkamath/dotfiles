@@ -1,0 +1,23 @@
+# load our own completion functions
+fpath=("$(brew --prefix)/share/zsh/site-functions" $fpath)
+
+autoload -U compinit
+compinit
+
+autoload -U promptinit
+promptinit
+zstyle ":prompt:pure:git:branch" color cyan
+zstyle ":prompt:pure:user" color 7
+zstyle ":prompt:pure:host" color 7
+prompt pure
+
+# enable vim bindings
+bindkey -v
+
+# mvoe up and down lines
+bindkey "^P" up-line-or-search
+bindkey "^N" down-line-or-search
+
+# add some readline keys back
+bindkey "^A" beginning-of-line
+bindkey "^E" end-of-line
