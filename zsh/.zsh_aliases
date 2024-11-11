@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# directories
+export DEVELOPER="$HOME/Developer"
+export CONF="$HOME/.config"
+
+# config
+alias dev='cd $DEVELOPER'
+alias dotfiles='cd $DEVELOPER/dotfiles'
+alias zshrc='vim $CONF/zsh/.zshrc && source $_'
+alias zshopts='vim $CONF/zsh/.zshopts && source $_'
+alias aliases='vim $CONF/zsh/aliases && source $_'
+alias gitconfig='vim $CONF/git/config'
+alias gitignore='vim $CONF/git/ignore'
+alias vimplugs='vim $HOME/.vim/init/plugins.vim'
+alias vimmaps='vim $HOME/.vim/init/keymaps.vim'
+alias vimopts='vim $HOME/.vim/init/settings.vim'
+alias vimsync="vim +'PlugInstall --sync' +qa"
+alias vimfmt="vim -c 'set filetype=gitcommit'"
+
+alias cp-dockertag="docker images | tail +2 | awk '{ print \$1\":\"\$2 }' | fzf | awk -F ':' '{print \$NF}' | tr -d '\n' | pbcopy"
+alias pcapture="sudo tcpdump -i en0 -w pcap.pcap"
+alias vsource="source venv/bin/activate"
+
+# source work file if exists
+test -f "$CONF/zsh/.zsh_aliases.work" && source $_
+
+safe_attach() {
+  if [[ $# -ne 1 ]]; then
+    echo "Usage: safe_attach [session_name]"
+    return 1
+  fi
+
+  tmux has-session -t $1 2> /dev/null
+  if [ $? -eq 1 ]; then
+    # set environment variable for all successive tmux splits and current
+    # split (different cases, since current split gets created automatically
+    tmux new-session -ds $1 \; \
+      setenv ENVIRONMENT $1 \; \
+      send-keys -t 0 "export ENVIRONMENT="$1 C-m C-l \;
+  fi
+
+  attach $1
+}
+
