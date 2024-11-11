@@ -249,3 +249,16 @@ run = ['layout floating']
 [[on-window-detected]]
 if.app-id = 'com.spotify.client'
 run = ['move-node-to-workspace M']
+
+[[on-window-detected]]
+if.app-id = ' com.microsoft.VSCode'
+run = ['move-node-to-workspace C']
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = ['move-node-to-workspace B']
+
+[workspace-to-monitor-force-assignment]
+B = 2
+C = 3
+I = 3
