@@ -18,7 +18,7 @@ alias vimsync="vim +'PlugInstall --sync' +qa"
 
 alias vimfmt="vim -c 'set filetype=gitcommit'"
 
-alias cp-dockertag="docker images | tail +2 | awk '{ print \$1\":\"\$2 }' | fzf | tr -d '\n' | pbcopy"
+alias cp-dockertag="docker images | tail +2 | awk '{ print \$1\":\"\$2 }' | fzf | awk -F ':' '{print \$NF}' | tr -d '\n' | pbcopy"
 
 # source work file if exists
 test -f "$CONF/bash/aliases.work" && source $_
