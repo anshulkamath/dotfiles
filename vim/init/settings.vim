@@ -30,3 +30,8 @@ set shortmess+=I
 
 " Allow to scroll off the buffer a little
 set scrolloff=5
+
+" Indentation
+set tabstop=4
+set shiftwidth=4
+set expandtab
