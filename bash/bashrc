@@ -1,6 +1,11 @@
-eval $(/opt/homebrew/bin/brew shellenv)
+if [[ -f /opt/homebrew/bin/brew ]]; then
+	eval $(/opt/homebrew/bin/brew shellenv)
+fi
 
-export PATH="$PATH:$(go env GOPATH)/bin"
+if which go 2> /dev/null; then
+	export PATH="$PATH:$(go env GOPATH)/bin"
+fi
+
 export PATH="$PATH:$HOME/local/bin"
 
 export BASH_SILENCE_DEPRECATION_WARNING=1
