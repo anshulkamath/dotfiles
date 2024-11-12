@@ -1,3 +1,7 @@
+if [[ -f /opt/homebrew/bin/brew ]]; then
+	eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
 export PATH="$PATH:/Users/anshul.kamath/.config/bin"
 
 source ~/.config/zsh/.zsh_aliases
