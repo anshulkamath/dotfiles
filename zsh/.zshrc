@@ -1,6 +1,3 @@
-eval "$(/opt/homebrew/bin/brew shellenv)"
-
-export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
 export PATH="$PATH:/Users/anshul.kamath/.config/bin"
 
 source ~/.config/zsh/.zsh_aliases
