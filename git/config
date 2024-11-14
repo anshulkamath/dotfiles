@@ -50,7 +50,7 @@
 	overview = !"git peek -5 ; echo ; git status -s"
 	ov = overview
 
-	ping = ls-remote
+	ping = !"git ls-remote > /dev/null 2>&1 "
 
 [rerere]
 	enabled = true
