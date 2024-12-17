@@ -16,9 +16,13 @@ go.work**
 /local
 venv
 .netrwhist
+*.swp
 
 # intellij
 *iml
 *iws
 *ipr
 .idea
+
+# python
+__pycache__

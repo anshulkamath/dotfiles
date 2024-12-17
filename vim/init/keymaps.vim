@@ -14,3 +14,6 @@ map <leader>Y V"+y
 " Fzf
 nnoremap <leader>ff :Files<cr>
 nnoremap <leader>fs :Rg<cr>
+
+" Redraw
+nnoremap <leader>r :redraw!<cr>

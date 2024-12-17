@@ -35,3 +35,9 @@ set scrolloff=5
 set tabstop=4
 set shiftwidth=4
 set expandtab
+
+" Persistent undo
+set undofile
+set undodir=$HOME/.vim/undodir
+set undolevels=1000
+set undoreload=10000
