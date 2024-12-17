@@ -24,7 +24,7 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 accordion-padding = 30
 
 # Possible values: tiles|accordion
-default-root-container-layout = 'accordion'
+default-root-container-layout = 'tiles'
 
 # Possible values: horizontal|vertical|auto
 # 'auto' means: wide monitor (anything wider than high) gets horizontal orientation,
@@ -243,6 +243,10 @@ if.app-id = 'com.jetbrains.intellij.ce'
 run = ['move-node-to-workspace I']
 
 [[on-window-detected]]
+if.app-id = 'com.apple.Preview'
+run = ['layout floating']
+
+[[on-window-detected]]
 if.app-id = 'com.apple.Notes'
 run = ['layout floating']
 
@@ -251,7 +255,7 @@ if.app-id = 'com.spotify.client'
 run = ['move-node-to-workspace M']
 
 [[on-window-detected]]
-if.app-id = ' com.microsoft.VSCode'
+if.app-id = 'com.microsoft.VSCode'
 run = ['move-node-to-workspace C']
 
 [[on-window-detected]]
@@ -260,5 +264,3 @@ run = ['move-node-to-workspace B']
 
 [workspace-to-monitor-force-assignment]
 B = 2
-C = 3
-I = 3
