@@ -16,7 +16,7 @@ opt.relativenumber = true
 -- turn off vim backups and default to undotree
 opt.swapfile = false
 opt.backup = false
-opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
+opt.undodir = os.getenv("HOME") .. "/.nvim/undodir"
 opt.undolevels = 1000
 opt.undofile = true
 
