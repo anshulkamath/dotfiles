@@ -15,9 +15,11 @@ prompt pure
 # enable vim bindings
 bindkey -v
 
-# mvoe up and down lines
+# move up and down lines
 bindkey "^P" history-search-backward
 bindkey "^N" history-search-forward
+bindkey "^[b" backward-word
+bindkey "^[f" forward-word
 
 # add some readline keys back
 bindkey "^A" beginning-of-line
