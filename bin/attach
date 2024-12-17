@@ -8,8 +8,14 @@ rename_tab() {
   kitty @ set-tab-title $1
 }
 
+if [[ -n "$TMUX" ]]; then
+    echo "Detected that you are in a TMUX session. Please exit the session or refresh your environment."
+    exit 1
+fi
+
 if [ $# -ne 1 ]; then
   echo "Usage: $0 [session-name]"
+  exit 1
 fi
 
 session_name=$1
