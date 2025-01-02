@@ -3,6 +3,7 @@ if [[ -f /opt/homebrew/bin/brew ]]; then
 fi
 
 export PATH="$PATH:/Users/anshul.kamath/.config/bin"
+export PATH="$PATH:/Users/anshul.kamath/.rd/bin"
 
 source ~/.config/zsh/.zsh_aliases
 source ~/.config/zsh/.zshopts
