@@ -32,3 +32,6 @@ vim -es +'silent! PlugInstall --sync' +qa
 
 # make all custom binaries executable
 find "bin" -type f | xargs chmod +x
+
+# install all dependencies via homebrew
+brew bundle
