@@ -2,8 +2,8 @@ if [[ -f /opt/homebrew/bin/brew ]]; then
 	eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-export PATH="$PATH:/Users/anshul.kamath/.config/bin"
-export PATH="$PATH:/Users/anshul.kamath/.rd/bin"
+export PATH="$PATH:$HOME/.config/bin"
+export PATH="$PATH:$HOME/.rd/bin"
 
 source ~/.config/zsh/.zsh_aliases
 source ~/.config/zsh/.zshopts

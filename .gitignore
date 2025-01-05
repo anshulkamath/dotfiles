@@ -4,6 +4,7 @@ nvim/plugin
 # tmux
 tmux/plugins
 **\.work
+**\.local
 
 # vim
 vim/plugged
