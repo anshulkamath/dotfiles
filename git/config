@@ -65,5 +65,5 @@
 	helper = /usr/local/share/gcm-core/git-credential-manager
 	useHttpPath = true
 
-[includeIf "gitdir:~/Developer/quantcast/"]
+[includeIf "gitdir:~/Developer/fluidstack/"]
 	path = ~/.config/git/config.work

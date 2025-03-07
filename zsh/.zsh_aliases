@@ -6,7 +6,7 @@ export CONF="$HOME/.config"
 
 # config
 alias dev='cd $DEVELOPER'
-alias dotfiles='cd $DEVELOPER/dotfiles'
+alias dotfiles='cd $DEVELOPER/public/dotfiles'
 alias zshrc='vim $CONF/zsh/.zshrc && source $_'
 alias zshopts='vim $CONF/zsh/.zshopts && source $_'
 alias aliases='vim $CONF/zsh/.zsh_aliases && source $_'

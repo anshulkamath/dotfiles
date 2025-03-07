@@ -35,3 +35,9 @@ find "bin" -type f | xargs chmod +x
 
 # install all dependencies via homebrew
 brew bundle
+
+# git submodule
+git submodule update --init --recursive
+
+# init undodir
+mkdir -p $HOME/.vim/undodir
