@@ -26,7 +26,12 @@ alias vsource="source venv/bin/activate"
 # source work file if exists
 test -f "$CONF/zsh/.zsh_aliases.local" && source $_
 
-safe_attach() {
+errcho() {
+    echo $1 > /dev/stderr
+    exit 1
+}
+
+safe-attach() {
   if [[ $# -ne 1 ]]; then
     echo "Usage: safe_attach [session_name]"
     return 1
@@ -42,5 +47,50 @@ safe_attach() {
   fi
 
   attach $1
+}
+
+## Pretty simply, this applies a filter to stdin and matches
+## a couple filters. The first filter (optional) is meant to
+## further filter potential hits (filtering is a commutative
+## action, and ergonomically it makes the most sense to have
+## it defined at the beginning). The second filter must then
+## provide a single regex capture group to extract the IP to
+## SSH into.
+ssh-grep () {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: $(basename $0) [TOP_FILTER] IP_PATTERN"
+        echo
+        echo "Ingests a stdin and extracts a hostname/IP pattern to SSH into."
+        exit 1
+    fi
+
+    TMP_FILE=`mktemp`
+    TOP_FILTER=$1
+    IP_PATTERN=$2
+
+    if [[ -z "$IP_PATTERN" ]]; then
+        IP_PATTERN=$TOP_FILTER
+    fi
+
+    rg $TOP_FILTER | rg $IP_PATTERN > $TMP_FILE
+    if [[ ! -s "$TMP_FILE" ]]; then
+        errcho "unable to find any hosts that match the given filter(s)"
+    fi
+
+    if [[ `wc -l $TMP_FILE | awk '{print $1}'` -eq 1 ]]; then
+        HOST=`cat $TMP_FILE | rg $IP_PATTERN | rg $IP_PATTERN -r '$1' -o`
+    else
+        HOST=$(cat $TMP_FILE | rg $IP_PATTERN | fzf | rg $IP_PATTERN -r '$1' -o)
+    fi
+
+    if [[ -z $HOST ]]; then
+        errcho "unable to find host(s) that match the given ip pattern: '$IP_PATTERN'"
+    fi
+
+    ssh $HOST
+}
+
+ssh-inv() {
+ ssh-grep $1 'ansible_host=([^\s]+)'
 }
 
