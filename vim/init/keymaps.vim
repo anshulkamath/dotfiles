@@ -17,3 +17,10 @@ nnoremap <leader>fs :Rg<cr>
 
 " Redraw
 nnoremap <leader>r :redraw!<cr>
+
+" Open Project View
+nnoremap <leader>pv :Ex<cr>
+
+" Split View
+nnoremap <leader>sv :vsplit<cr>
+nnoremap <leader>sh :hsplit<cr>
