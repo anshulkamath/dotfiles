@@ -16,6 +16,7 @@
     co = checkout
     unstage = restore --staged
     lg = !"git lg1"
+    ignored = !git ls-files -v | grep "^[[:lower:]]"
 
     # source https://stackoverflow.com/a/9074343/1079869
     lg1 = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
@@ -53,6 +54,7 @@
     ping = !"git ls-remote > /dev/null 2>&1 "
 
     # resets the current branch to main
+    reset-branch = !"git fetch origin main && git reset --hard origin/main"
 
 [rerere]
     enabled = true
