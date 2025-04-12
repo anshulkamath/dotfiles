@@ -41,3 +41,9 @@ git submodule update --init --recursive
 
 # init undodir
 mkdir -p $HOME/.vim/undodir
+
+if [[ -f "$PWD/macos/defaults" ]]; then
+    bash $_
+else
+    echo "error: unable to find macos defaults"
+fi
