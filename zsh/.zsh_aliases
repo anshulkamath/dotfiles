@@ -4,6 +4,9 @@
 export DEVELOPER="$HOME/Developer"
 export CONF="$HOME/.config"
 
+# paths
+export ONEPASS_VAULT_CLIENT=`which onepass-vault-client`
+
 # config
 alias dev='cd $DEVELOPER'
 alias dotfiles='cd $DEVELOPER/public/dotfiles'

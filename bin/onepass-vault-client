@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# A compliant vault password client script for Ansible
+# Fetches the vault password from 1Password using the op CLI
+
+# Expected usage: Ansible runs this with `--vault-id` argument(s), which we must accept
+# Reference: https://docs.ansible.com/ansible/latest/vault_guide/vault_client_script.html
+
+#!/bin/bash
+
+vault_id=""
+while [ $# -ge 1 ]; do
+  case "$1" in
+    --vault-id)
+      vault_id=$2
+      shift
+      shift
+      ;;
+    --help|-h|**)
+      echo "Usage: $0 --vault-id VAULT_ID"
+      exit 0
+      ;;
+  esac
+  shift
+done
+
+# Shared 1Password Ansible Vault Item
+ITEM_NAME="Ansible Vault Password - $vault_id"
+
+# Fetch the password using 1Password CLI
+PASSWORD=$(op item get "$ITEM_NAME" --field password --reveal)
+
+if [[ -z "$PASSWORD" ]]; then
+  echo "error: could not retrieve password for item \`$ITEM_NAME\` from 1Password." >&2
+  exit 1
+fi
+
+echo "$PASSWORD"
+
