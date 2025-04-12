@@ -1,0 +1,10 @@
+#!/bin/bash
+
+USER=$(gum input --value="ubuntu")
+KEY=$(gum input --value="~/.ssh/rundeck")
+CLUSTER=$(gum input --placeholder="us-west-1")
+PATH_TO_KUBECONFIG=$(gum input --value="${HOME}/.kube/contexts/${CLUSTER}.conf")
+
+ssh -i $KEY -o StrictHostKeyChecking=no ${USER}@${CLUSTER}.fluidstack.io 'sudo kubectl config view --raw' > $PATH_TO_KUBECONFIG
+sed -i '' "s/cluster.local/${CLUSTER}/g" $PATH_TO_KUBECONFIG
+sed -i '' "s/127.0.0.1/${CLUSTER}.fluidstack.io/g" $PATH_TO_KUBECONFIG
