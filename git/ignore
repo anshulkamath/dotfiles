@@ -29,3 +29,4 @@ __pycache__
 
 *.zcompcache
 .zsh_sessions
+.env
