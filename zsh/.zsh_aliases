@@ -3,6 +3,7 @@
 # directories
 export DEVELOPER="$HOME/Developer"
 export CONF="$HOME/.config"
+export DOTFILES="$DEVELOPER/public/dotfiles"
 
 # paths
 export ONEPASS_VAULT_CLIENT=`which onepass-vault-client`
@@ -29,6 +30,7 @@ alias vsource="source venv/bin/activate"
 alias kns="kubens"
 alias kctx="kubectx"
 alias kctl="kubectl"
+alias kpfw="kubectl port-forward"
 
 # source work file if exists
 test -f "$CONF/zsh/.zsh_aliases.local" && source $_
