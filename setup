@@ -14,6 +14,7 @@ test -L "$xdg_config_home/kitty" || ln -sfn "$PWD/kitty" $_
 test -L "$xdg_config_home/nvim" || ln -sfn "$PWD/nvim" $_
 test -L "$xdg_config_home/tmux" || ln -sfn "$PWD/tmux" $_
 test -L "$xdg_config_home/zsh" || ln -sfn "$PWD/zsh" $_
+test -L "$xdg_config_home/ngrok" || ln -sfn "$PWD/ngrok" $_
 
 # link bash profile and bash rc explicitly
 test -L "$HOME/.bashrc" || ln -sfn "$xdg_config_home/bash/bashrc" $_

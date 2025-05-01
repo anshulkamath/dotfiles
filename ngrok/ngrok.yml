@@ -1,0 +1,7 @@
+version: 3
+
+tunnels:
+  default:
+    proto: http
+    domain: anshulkamath.ngrok.app
+    addr: 80
