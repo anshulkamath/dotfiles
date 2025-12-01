@@ -6,6 +6,7 @@
 *.code-workspace
 go.work**
 .devcontainer
+*debug_bin*
 
 .envrc
 .sdkmanrc
@@ -30,8 +31,18 @@ __pycache__
 *.zcompcache
 .zsh_sessions
 .env
+.env*
+config.yaml
 
 # sandbox environments
 *sandbox*
 
 .ansible
+
+helm/charts
+
+**/.claude/settings.local.json
+
+*/.terraform/*/*
+
+SESSION_SUMMARY.md
