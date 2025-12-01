@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+# dump_server.py
+# Usage: python3 dump_server.py [port]
+# Prints request line, headers, and body; responds with HTTP/1.1 200 OK.
+
+import sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
+
+PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
+
+class DumpHandler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
+    def do_ANY(self):   # helper used by do_GET/do_POST/etc.
+        # Request line
+        print("---- New Request ----")
+        print(f"{self.command} {self.path} {self.request_version}")
+
+        # Headers
+        for k, v in self.headers.items():
+            print(f"{k}: {v}")
+        print()
+
+        # Body (if any)
+        length = int(self.headers.get('Content-Length', 0))
+        if length:
+            body = self.rfile.read(length)
+            # Try to decode as utf-8, fallback to repr for binary
+            try:
+                print(body.decode('utf-8'))
+            except Exception:
+                print(repr(body))
+        else:
+            print("<no body>")
+
+        print("---------------------\n", flush=True)
+
+        # Respond 200 OK
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", "0")
+        self.send_header("Connection", "close")
+        self.end_headers()
+
+    # Wire common methods to the same handler
+    def do_GET(self):  self.do_ANY()
+    def do_HEAD(self): self.do_ANY()
+    def do_POST(self): self.do_ANY()
+    def do_PUT(self):  self.do_ANY()
+    def do_DELETE(self): self.do_ANY()
+    def do_PATCH(self): self.do_ANY()
+    def log_message(self, format, *args):
+        # suppress default logging to keep output clean (requests are printed above)
+        return
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
+
+if __name__ == "__main__":
+    print(f"Listening on 0.0.0.0:{PORT} — printing requests to stdout")
+    server = ThreadedHTTPServer(("0.0.0.0", PORT), DumpHandler)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down...")
+        server.server_close()
+

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 USER=$(gum input --value="ubuntu")
-KEY=$(gum input --value="~/.ssh/rundeck")
+KEY=$(gum input --value="~/.ssh/id_ed25519")
 CLUSTER=$(gum input --placeholder="us-west-1")
 PATH_TO_KUBECONFIG=$(gum input --value="${HOME}/.kube/contexts/${CLUSTER}.conf")
 
