@@ -274,5 +274,13 @@ run = ['layout floating', 'move-node-to-workspace V']
 if.app-id = 'notion.id'
 run = ['move-node-to-workspace N']
 
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'
+run = ['move-node-to-workspace A']
+
+[[on-window-detected]]
+if.app-id = 'dev.zed.Zed'
+run = ['move-node-to-workspace Z']
+
 [workspace-to-monitor-force-assignment]
 B = 2
