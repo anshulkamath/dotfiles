@@ -1,0 +1,119 @@
+#!/bin/bash
+set -euo pipefail
+
+WORKSPACES_DIR="$HOME/.workspaces"
+CLAUDE_PROJECTS_DIR="$HOME/.claude/projects"
+
+# --- helpers ---
+
+repo_root() {
+  local repo_pointer="$(jj workspace root)/.jj/repo"
+  if [ -d "$repo_pointer" ]; then
+    jj workspace root
+  else
+    dirname "$(dirname "$(cat "$repo_pointer")")"
+  fi
+}
+
+repo_hash() {
+  echo -n "$(repo_root)" | shasum -a 256 | cut -c1-12
+}
+
+encode_path() {
+  echo "$1" | sed 's/\/\./--%/g; s/\//-/g; s/%//g'
+}
+
+# Copy the most recent Claude session from the current project to the target.
+copy_claude_session() {
+  local target="$1"
+  local src_dir="$CLAUDE_PROJECTS_DIR/$(encode_path "$(pwd)")"
+  [ -d "$src_dir" ] || return 0
+
+  local latest
+  latest="$(ls -t "$src_dir"/*.jsonl 2>/dev/null | head -1)" || return 0
+  [ -n "$latest" ] || return 0
+
+  claude-cp "$target" "$(basename "$latest" .jsonl)"
+}
+
+# Remove the Claude project directory for a given workspace path.
+remove_claude_project() {
+  local project_dir="$CLAUDE_PROJECTS_DIR/$(encode_path "$1")"
+  [ -d "$project_dir" ] && rm -rf "$project_dir"
+  return 0
+}
+
+# --- commands ---
+
+cmd_go() {
+  local editor="zed" name=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --editor) editor="$2"; shift 2 ;;
+      *)        name="$1"; shift ;;
+    esac
+  done
+
+  if [ -z "$name" ]; then
+    echo "Usage: jjj go <space-name> [--editor <editor>]" >&2
+    exit 1
+  fi
+
+  local target
+  if [ "$name" = "default" ]; then
+    target="$(repo_root)"
+  else
+    local ws_dir="$WORKSPACES_DIR/$(repo_hash)/$name"
+    if [ ! -d "$ws_dir" ]; then
+      mkdir -p "$WORKSPACES_DIR/$(repo_hash)"
+      jj workspace add "$ws_dir" --name "$name"
+    fi
+    target="$ws_dir"
+  fi
+
+  if ! copy_claude_session "$target"; then
+    echo "Warning: failed to copy Claude session to workspace" >&2
+  fi
+  (cd "$target" && "$editor" . && exec zsh)
+}
+
+cmd_close() {
+  local force=false
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --force) force=true; shift ;;
+      *)       shift ;;
+    esac
+  done
+
+  local ws_root repo_pointer name
+  ws_root="$(jj workspace root)"
+  repo_pointer="$ws_root/.jj/repo"
+
+  if [ -d "$repo_pointer" ] && [ "$force" = false ]; then
+    echo "Cannot close the default workspace (use --force to override)" >&2
+    exit 1
+  fi
+
+  name="$(basename "$ws_root")"
+  if ! remove_claude_project "$ws_root"; then
+    echo "Warning: failed to remove Claude project for workspace" >&2
+  fi
+  jj workspace forget "$name" 2>/dev/null || true
+  rm -rf "$ws_root"
+  echo "Closed workspace $name"
+}
+
+# --- main ---
+
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+  go)    cmd_go "$@" ;;
+  close) cmd_close "$@" ;;
+  *)
+    echo "Usage: jjj {go|close}" >&2
+    exit 1
+    ;;
+esac
