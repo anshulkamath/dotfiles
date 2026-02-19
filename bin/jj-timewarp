@@ -1,0 +1,846 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# --- ANSI colors (real escape bytes for buffered output) ---
+readonly RED=$'\033[0;31m'
+readonly GREEN=$'\033[0;32m'
+readonly YELLOW=$'\033[1;33m'
+readonly BLUE=$'\033[0;34m'
+readonly CYAN=$'\033[0;36m'
+readonly DIM=$'\033[2m'
+readonly BOLD=$'\033[1m'
+readonly NC=$'\033[0m'
+
+# --- Global state ---
+MODE="revs"
+SAVED_TTY=""
+ORIGINAL_CHANGE_ID=""
+
+# Ops state
+OP_IDS=()
+OP_TIMES=()
+OP_DESCS=()
+OP_COUNT=0
+CURRENT_OP_IDX=0
+
+# Revs state
+REV_OP=""
+CURRENT_REV=""
+SIBLINGS=()
+SIBLING_IDX=0
+
+# In-memory revision graph (loaded once per revs mode entry)
+declare -A GRAPH_COMMIT=()    # change_id → commit_id
+declare -A GRAPH_AUTHOR=()    # change_id → author
+declare -A GRAPH_TIME=()      # change_id → timestamp
+declare -A GRAPH_DESC=()      # change_id → description
+declare -A GRAPH_PARENTS=()   # change_id → "parent1,parent2,..."
+declare -A GRAPH_CHILDREN=()  # change_id → "child1,child2,..."
+
+# View cache (derived from graph on each navigation)
+CACHED_PARENTS=()
+CACHED_CHILDREN=()
+
+# Cached jj log output for graph view (loaded once per revs mode entry)
+GRAPH_VIEW_COLORED=()   # lines with ANSI colors for display
+GRAPH_VIEW_PLAIN=()     # stripped lines for change_id matching
+
+# UI state
+ERROR_FLASH=""
+LIMIT=200
+FZF_LAST_QUERY=""
+
+# --- Logging ---
+error() { printf "${RED}error${NC}: %s\n" "$*" >&2; }
+
+# --- Usage ---
+usage() {
+    cat <<EOF
+${BOLD}jj-timewarp${NC} — time-travel TUI for jujutsu
+
+${BOLD}USAGE${NC}
+    jj-timewarp [OPTIONS]
+
+${BOLD}DESCRIPTION${NC}
+    Browse your jj operation history and revision graph in a navigable TUI.
+    Inspect file trees at any point in history, preview file contents, and
+    selectively restore files into new sibling revisions — all without
+    touching the working copy.
+
+${BOLD}OPTIONS${NC}
+    --revs          Start in revisions mode (default)
+    --ops           Start in operations mode
+    --limit N       Max operations to load (default 200)
+    -h, --help      Show this help message
+
+${BOLD}REVISIONS MODE${NC}
+    Navigate the revision DAG at the current operation.
+
+    j / ↓           Move to first parent
+    k / ↑           Move to first child
+    h / ←           Previous sibling
+    l / →           Next sibling
+    f / Enter       Open file browser
+    o               Switch to ops mode
+    q / Esc         Quit
+
+${BOLD}OPERATIONS MODE${NC}
+    Navigate the linear operation log.
+
+    j / ↓           Older operation
+    k / ↑           Newer operation
+    Space           Drill into revision graph at this op
+    g               Switch to revs mode
+    f / Enter       Open file browser
+    q / Esc         Quit
+
+${BOLD}FILE BROWSER${NC}
+    Fuzzy-find files at the current operation/revision using fzf.
+
+    Enter           Preview file in less (q returns to fzf)
+    Tab / Shift-Tab Toggle selection
+    Ctrl-R          Restore selected files into a new sibling revision
+    Esc             Return to TUI
+
+${BOLD}REQUIREMENTS${NC}
+    bash 4+, jj, fzf
+
+${BOLD}EXAMPLES${NC}
+    jj-timewarp             Browse revisions at the current operation
+    jj-timewarp --ops       Start in operations mode
+    jj-timewarp --limit 50  Load only the last 50 operations
+EOF
+}
+
+# --- Argument parsing ---
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --ops)   MODE="ops"; shift ;;
+            --revs)  MODE="revs"; shift ;;
+            --limit) LIMIT="$2"; shift 2 ;;
+            -h|--help) usage; exit 0 ;;
+            -*) error "Unknown option: $1"; usage; exit 1 ;;
+            *)  error "Unexpected argument: $1"; usage; exit 1 ;;
+        esac
+    done
+}
+
+# --- Prerequisites ---
+check_dependencies() {
+    if (( BASH_VERSINFO[0] < 4 )); then
+        error "bash 4+ required (found ${BASH_VERSION}). Install with: brew install bash"
+        exit 1
+    fi
+    if ! command -v jj &>/dev/null; then
+        error "jj is not installed"
+        exit 1
+    fi
+    if ! command -v fzf &>/dev/null; then
+        error "fzf is not installed"
+        exit 1
+    fi
+    if ! jj root &>/dev/null; then
+        error "not in a jj repository"
+        exit 1
+    fi
+}
+
+check_working_copy() {
+    local status
+    status="$(jj log --no-graph -T 'change_id' -r @ 2>&1)" || true
+    if [[ "$status" == *"working copy is stale"* ]]; then
+        error "working copy is stale"
+        printf "  Run ${BOLD}jj workspace update-stale${NC} to fix it.\n" >&2
+        exit 1
+    fi
+}
+
+save_current_change() {
+    ORIGINAL_CHANGE_ID="$(jj log --no-graph -T 'change_id' -r @ 2>/dev/null)"
+}
+
+# --- Operations loading ---
+load_operations() {
+    local raw
+    raw="$(jj op log --no-graph --ignore-working-copy --limit "$LIMIT" \
+        -T 'self.id().short() ++ "\x1f" ++ self.time().start() ++ "\x1f" ++ self.description() ++ "\n"' 2>/dev/null)"
+
+    OP_IDS=()
+    OP_TIMES=()
+    OP_DESCS=()
+
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        local id time desc
+        id="${line%%$'\x1f'*}"
+        local rest="${line#*$'\x1f'}"
+        time="${rest%%$'\x1f'*}"
+        desc="${rest#*$'\x1f'}"
+        # Truncate multi-line descriptions to first line
+        desc="${desc%%$'\n'*}"
+        OP_IDS+=("$id")
+        OP_TIMES+=("$time")
+        OP_DESCS+=("$desc")
+    done <<< "$raw"
+
+    OP_COUNT=${#OP_IDS[@]}
+
+    # First entry is the current (most recent) operation
+    CURRENT_OP_IDX=0
+}
+
+# --- Terminal management ---
+setup_terminal() {
+    SAVED_TTY="$(stty -g)"
+    stty -echo -icanon min 1
+    printf '\033[?1049h'  # alt screen
+    printf '\033[?25l'    # hide cursor
+}
+
+cleanup_terminal() {
+    printf '\033[?25h'    # show cursor
+    printf '\033[?1049l'  # leave alt screen
+    if [[ -n "$SAVED_TTY" ]]; then
+        stty "$SAVED_TTY" 2>/dev/null || true
+    fi
+}
+
+pause_terminal() {
+    printf '\033[0m'       # reset colors
+    printf '\033[?25h'     # show cursor
+    printf '\033[?1049l'   # leave alt screen
+    if [[ -n "$SAVED_TTY" ]]; then
+        stty "$SAVED_TTY" 2>/dev/null || true
+    fi
+}
+
+resume_terminal() {
+    SAVED_TTY="$(stty -g)"
+    stty -echo -icanon min 1
+    printf '\033[?1049h'
+    printf '\033[?25l'
+}
+
+# --- Revision graph (loaded once, traversed in memory) ---
+
+load_rev_graph() {
+    local op="$1"
+
+    GRAPH_COMMIT=()
+    GRAPH_AUTHOR=()
+    GRAPH_TIME=()
+    GRAPH_DESC=()
+    GRAPH_PARENTS=()
+    GRAPH_CHILDREN=()
+
+    local raw
+    raw="$(jj --at-op="$op" log --no-graph --ignore-working-copy \
+        -T 'change_id.short() ++ "\x1f" ++ commit_id.short() ++ "\x1f" ++ author.name() ++ "\x1f" ++ author.timestamp() ++ "\x1f" ++ description.first_line() ++ "\x1f" ++ parents.map(|p| p.change_id().short()).join(",") ++ "\n"' \
+        -r 'all()' 2>/dev/null)" || true
+
+    # Parse into associative arrays
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        local id rest
+        id="${line%%$'\x1f'*}"
+        rest="${line#*$'\x1f'}"
+        GRAPH_COMMIT[$id]="${rest%%$'\x1f'*}"
+        rest="${rest#*$'\x1f'}"
+        GRAPH_AUTHOR[$id]="${rest%%$'\x1f'*}"
+        rest="${rest#*$'\x1f'}"
+        GRAPH_TIME[$id]="${rest%%$'\x1f'*}"
+        rest="${rest#*$'\x1f'}"
+        GRAPH_DESC[$id]="${rest%%$'\x1f'*}"
+        GRAPH_PARENTS[$id]="${rest#*$'\x1f'}"
+        GRAPH_CHILDREN[$id]=""
+    done <<< "$raw"
+
+    # Build children index by inverting parents
+    local id
+    for id in "${!GRAPH_PARENTS[@]}"; do
+        local pcsv="${GRAPH_PARENTS[$id]}"
+        [[ -z "$pcsv" ]] && continue
+        IFS=',' read -ra pids <<< "$pcsv"
+        local pid
+        for pid in "${pids[@]}"; do
+            [[ -z "$pid" ]] && continue
+            # Only index parents that exist in the graph
+            if [[ -n "${GRAPH_COMMIT[$pid]+_}" ]]; then
+                if [[ -n "${GRAPH_CHILDREN[$pid]}" ]]; then
+                    GRAPH_CHILDREN[$pid]+=",${id}"
+                else
+                    GRAPH_CHILDREN[$pid]="$id"
+                fi
+            fi
+        done
+    done
+}
+
+# Cache the `jj log` graph output (colored + plain) for the scrollable view.
+# Called once on revs mode entry alongside load_rev_graph.
+load_graph_view() {
+    local op="$1"
+    local tpl='change_id.short() ++ " " ++ if(description, description.first_line(), "(empty)") ++ "\n"'
+
+    GRAPH_VIEW_COLORED=()
+    GRAPH_VIEW_PLAIN=()
+
+    # Colored output for display
+    local raw
+    raw="$(jj --at-op="$op" log --ignore-working-copy --color=always \
+        -T "$tpl" -r 'all()' 2>/dev/null)" || true
+    while IFS= read -r line; do
+        GRAPH_VIEW_COLORED+=("$line")
+    done <<< "$raw"
+
+    # Plain output for change_id matching (same order, 1-to-1 with colored)
+    raw="$(jj --at-op="$op" log --ignore-working-copy --color=never \
+        -T "$tpl" -r 'all()' 2>/dev/null)" || true
+    while IFS= read -r line; do
+        GRAPH_VIEW_PLAIN+=("$line")
+    done <<< "$raw"
+}
+
+# Find the line number in GRAPH_VIEW_PLAIN that contains the given change_id.
+graph_view_line_of() {
+    local target="$1" n
+    for (( n = 0; n < ${#GRAPH_VIEW_PLAIN[@]}; n++ )); do
+        if [[ "${GRAPH_VIEW_PLAIN[$n]}" == *"$target"* ]]; then
+            printf '%d' "$n"
+            return
+        fi
+    done
+    printf '0'
+}
+
+# Refresh just parents/children for display and j/k navigation.
+# Does NOT touch SIBLINGS or SIBLING_IDX — safe for h/l traversal.
+refresh_nav_cache() {
+    local id="$CURRENT_REV"
+
+    CACHED_PARENTS=()
+    if [[ -n "${GRAPH_PARENTS[$id]:-}" ]]; then
+        IFS=',' read -ra CACHED_PARENTS <<< "${GRAPH_PARENTS[$id]}"
+    fi
+
+    CACHED_CHILDREN=()
+    if [[ -n "${GRAPH_CHILDREN[$id]:-}" ]]; then
+        IFS=',' read -ra CACHED_CHILDREN <<< "${GRAPH_CHILDREN[$id]}"
+    fi
+}
+
+# Full refresh: parents, children, AND recompute siblings from scratch.
+# Called on j/k navigation and mode entry — NOT on h/l sibling traversal.
+# SIBLINGS includes the current rev so h/l can always move away from it.
+refresh_rev_cache() {
+    refresh_nav_cache
+
+    local id="$CURRENT_REV"
+    SIBLINGS=()
+    SIBLING_IDX=0
+    local -A seen=()
+    local pid
+    for pid in "${CACHED_PARENTS[@]}"; do
+        [[ -z "$pid" ]] && continue
+        local ccsv="${GRAPH_CHILDREN[$pid]:-}"
+        [[ -z "$ccsv" ]] && continue
+        IFS=',' read -ra kids <<< "$ccsv"
+        local kid
+        for kid in "${kids[@]}"; do
+            if [[ -z "${seen[$kid]:-}" ]]; then
+                seen[$kid]=1
+                if [[ "$kid" == "$id" ]]; then
+                    SIBLING_IDX=${#SIBLINGS[@]}
+                fi
+                SIBLINGS+=("$kid")
+            fi
+        done
+    done
+}
+
+# --- Rendering (buffered) ---
+
+# Append a line to the frame buffer, clearing to end of line
+_line() { BUF+="$*"$'\033[K\n'; }
+# Append without trailing newline, clearing to end of line
+_partial() { BUF+="$*"$'\033[K'; }
+
+# Generate a separator of width $1 using pure bash (no subshells)
+_sep() {
+    local w="$1" s=""
+    local i
+    for (( i = 0; i < w; i++ )); do s+="─"; done
+    printf '%s' "$s"
+}
+
+render_screen() {
+    local cols lines
+    cols="$(tput cols)"
+    lines="$(tput lines)"
+
+    BUF=""
+    if [[ "$MODE" == "ops" ]]; then
+        render_ops_screen "$cols" "$lines"
+    else
+        render_revs_screen "$cols" "$lines"
+    fi
+
+    # Atomic write: cursor home, frame, erase leftover
+    printf '\033[H%s\033[J' "$BUF"
+}
+
+render_ops_screen() {
+    local cols="$1" lines="$2"
+    local sep
+    sep="$(_sep "$cols")"
+
+    local idx="$CURRENT_OP_IDX"
+    local op_id="${OP_IDS[$idx]}"
+    local op_time="${OP_TIMES[$idx]}"
+    local op_desc="${OP_DESCS[$idx]}"
+    local position="$((idx + 1))/${OP_COUNT}"
+
+    # Header
+    local header_left="jj-timewarp [ops]"
+    local header_right="[${position}]"
+    local pad=$(( cols - ${#header_left} - ${#header_right} ))
+    local pad_str=""
+    if (( pad > 0 )); then printf -v pad_str '%*s' "$pad" ''; fi
+    _line "${BOLD}${CYAN}jj-timewarp${NC} ${DIM}[ops]${NC}${pad_str}${DIM}[${position}]${NC}"
+    _line "$sep"
+
+    # Detail
+    _line ""
+    if (( idx == 0 )); then
+        _line "  ${BOLD}Operation${NC}   ${op_id} ${GREEN}(current)${NC}"
+    else
+        _line "  ${BOLD}Operation${NC}   ${op_id}"
+    fi
+    _line "  ${BOLD}Timestamp${NC}   ${op_time}"
+    _line "  ${BOLD}Description${NC} ${op_desc}"
+
+    # Op log context — show surrounding operations
+    _line ""
+    local visible=$(( lines - 11 ))
+    if (( visible < 3 )); then visible=3; fi
+    local half=$(( visible / 2 ))
+    local start=$(( idx - half ))
+    if (( start < 0 )); then start=0; fi
+    local end=$(( start + visible ))
+    if (( end > OP_COUNT )); then end=$OP_COUNT; fi
+    start=$(( end - visible ))
+    if (( start < 0 )); then start=0; fi
+
+    local max_desc_width=$(( cols - 22 ))
+    if (( max_desc_width < 10 )); then max_desc_width=10; fi
+
+    local n
+    for (( n = start; n < end; n++ )); do
+        local d="${OP_DESCS[$n]}"
+        if (( ${#d} > max_desc_width )); then
+            d="${d:0:$((max_desc_width - 1))}…"
+        fi
+        if (( n == idx )); then
+            _line "  ${BOLD}${CYAN}▶ ${NC}${BOLD}${OP_IDS[$n]}  ${d}${NC}"
+        else
+            _line "  ${DIM}  ${OP_IDS[$n]}  ${d}${NC}"
+        fi
+    done
+
+    # Error flash
+    if [[ -n "$ERROR_FLASH" ]]; then
+        _line ""
+        _line "  ${RED}${ERROR_FLASH}${NC}"
+    fi
+
+    # Footer
+    _line "$sep"
+    _partial " ${DIM}j${NC}↓ older  ${DIM}k${NC}↑ newer  ${DIM}f${NC} files  ${DIM}Space${NC} drill  ${DIM}g${NC}→revs  ${DIM}q${NC} quit"
+}
+
+render_revs_screen() {
+    local cols="$1" lines="$2"
+    local sep
+    sep="$(_sep "$cols")"
+
+    # Read from in-memory graph
+    local id="$CURRENT_REV"
+    local change_id="$id"
+    local commit_id="${GRAPH_COMMIT[$id]:-}"
+    local author="${GRAPH_AUTHOR[$id]:-}"
+    local timestamp="${GRAPH_TIME[$id]:-}"
+    local description="${GRAPH_DESC[$id]:-}"
+    local sibling_count=${#SIBLINGS[@]}
+
+    # Header
+    local op_short="${REV_OP:0:7}"
+    _line "${BOLD}${CYAN}jj-timewarp${NC} ${DIM}[revs @ op ${op_short}]${NC}"
+    _line "$sep"
+
+    # Detail panel
+    _line ""
+    _line "  ${BOLD}Change${NC}      ${change_id}  ${BOLD}Commit${NC}  ${commit_id}"
+    _line "  ${BOLD}Author${NC}      ${author}"
+    _line "  ${BOLD}Timestamp${NC}   ${timestamp}"
+    _line "  ${BOLD}Description${NC} ${description}"
+    # Siblings on same line as detail if present
+    if (( sibling_count > 1 )); then
+        local sib_line="  ${BOLD}Peers${NC}       "
+        local s
+        for (( s = 0; s < sibling_count; s++ )); do
+            if (( s == SIBLING_IDX )); then
+                sib_line+="${BOLD}${CYAN}${SIBLINGS[$s]}${NC}"
+            else
+                sib_line+="${DIM}${SIBLINGS[$s]}${NC}"
+            fi
+            if (( s < sibling_count - 1 )); then sib_line+="  "; fi
+        done
+        _line "$sib_line"
+    fi
+    _line "$sep"
+
+    # --- Scrollable jj log graph view ---
+    # Fixed lines: header(2) + detail(5-6) + sep(1) + footer(2) + error(0-2)
+    local fixed=10
+    if (( sibling_count > 1 )); then fixed=$(( fixed + 1 )); fi
+    if [[ -n "$ERROR_FLASH" ]]; then fixed=$(( fixed + 2 )); fi
+    local graph_lines=$(( lines - fixed ))
+    if (( graph_lines < 3 )); then graph_lines=3; fi
+
+    local total_view=${#GRAPH_VIEW_COLORED[@]}
+
+    # Inline search for current rev's line (avoids subshell array access issues)
+    local current_line=0
+    local _n
+    for (( _n = 0; _n < total_view; _n++ )); do
+        if [[ "${GRAPH_VIEW_PLAIN[$_n]}" == *"$id"* ]]; then
+            current_line=$_n
+            break
+        fi
+    done
+
+    # Center the window on current rev's line
+    local half=$(( graph_lines / 2 ))
+    local win_start=$(( current_line - half ))
+    if (( win_start < 0 )); then win_start=0; fi
+    local win_end=$(( win_start + graph_lines ))
+    if (( win_end > total_view )); then
+        win_end=$total_view
+        win_start=$(( win_end - graph_lines ))
+        if (( win_start < 0 )); then win_start=0; fi
+    fi
+
+    local n
+    for (( n = win_start; n < win_end; n++ )); do
+        if (( n == current_line )); then
+            # Highlight the current rev's line with a marker
+            _line "${BOLD}${CYAN}▶${NC} ${GRAPH_VIEW_COLORED[$n]}${NC}"
+        else
+            _line "  ${GRAPH_VIEW_COLORED[$n]}${NC}"
+        fi
+    done
+
+    # Error flash
+    if [[ -n "$ERROR_FLASH" ]]; then
+        _line ""
+        _line "  ${RED}${ERROR_FLASH}${NC}"
+    fi
+
+    # Footer
+    _line "$sep"
+    _partial " ${DIM}j${NC}↓ parent  ${DIM}k${NC}↑ child  ${DIM}h${NC}← sib  ${DIM}l${NC}→ sib  ${DIM}f${NC} files  ${DIM}o${NC}→ops  ${DIM}q${NC} quit"
+}
+
+# --- Navigation handlers ---
+handle_down() {
+    ERROR_FLASH=""
+    if [[ "$MODE" == "ops" ]]; then
+        if (( CURRENT_OP_IDX < OP_COUNT - 1 )); then
+            (( CURRENT_OP_IDX++ )) || true
+        fi
+    else
+        if (( ${#CACHED_PARENTS[@]} == 0 )); then
+            ERROR_FLASH="No parents"
+        else
+            CURRENT_REV="${CACHED_PARENTS[0]}"
+            refresh_rev_cache
+        fi
+    fi
+}
+
+handle_up() {
+    ERROR_FLASH=""
+    if [[ "$MODE" == "ops" ]]; then
+        if (( CURRENT_OP_IDX > 0 )); then
+            (( CURRENT_OP_IDX-- )) || true
+        fi
+    else
+        if (( ${#CACHED_CHILDREN[@]} == 0 )); then
+            ERROR_FLASH="No children"
+        else
+            CURRENT_REV="${CACHED_CHILDREN[0]}"
+            refresh_rev_cache
+        fi
+    fi
+}
+
+handle_left() {
+    ERROR_FLASH=""
+    if [[ "$MODE" == "ops" ]]; then
+        ERROR_FLASH="No siblings in op log"
+    else
+        if (( ${#SIBLINGS[@]} <= 1 )); then
+            ERROR_FLASH="No siblings"
+        else
+            if (( SIBLING_IDX <= 0 )); then
+                SIBLING_IDX=$(( ${#SIBLINGS[@]} - 1 ))
+            else
+                (( SIBLING_IDX-- )) || true
+            fi
+            CURRENT_REV="${SIBLINGS[$SIBLING_IDX]}"
+            refresh_nav_cache
+        fi
+    fi
+}
+
+handle_right() {
+    ERROR_FLASH=""
+    if [[ "$MODE" == "ops" ]]; then
+        ERROR_FLASH="No siblings in op log"
+    else
+        if (( ${#SIBLINGS[@]} <= 1 )); then
+            ERROR_FLASH="No siblings"
+        else
+            if (( SIBLING_IDX >= ${#SIBLINGS[@]} - 1 )); then
+                SIBLING_IDX=0
+            else
+                (( SIBLING_IDX++ )) || true
+            fi
+            CURRENT_REV="${SIBLINGS[$SIBLING_IDX]}"
+            refresh_nav_cache
+        fi
+    fi
+}
+
+# --- Mode switching ---
+switch_to_revs() {
+    local op="${OP_IDS[$CURRENT_OP_IDX]}"
+    REV_OP="$op"
+    CURRENT_REV="$(jj --at-op="$op" log --no-graph --ignore-working-copy \
+        -T 'change_id.short()' -r @ 2>/dev/null)" || true
+    if [[ -z "$CURRENT_REV" ]]; then
+        ERROR_FLASH="No working copy revision at this operation"
+        return
+    fi
+    load_rev_graph "$op"
+    load_graph_view "$op"
+    MODE="revs"
+    refresh_rev_cache
+    ERROR_FLASH=""
+}
+
+switch_to_ops() {
+    MODE="ops"
+    ERROR_FLASH=""
+}
+
+drill_down() {
+    switch_to_revs
+}
+
+# --- File browser ---
+open_file_browser() {
+    local op file_list_cmd file_show_cmd
+
+    if [[ "$MODE" == "ops" ]]; then
+        op="${OP_IDS[$CURRENT_OP_IDX]}"
+        file_list_cmd="jj --at-op=$op --ignore-working-copy file list"
+        file_show_cmd="jj --at-op=$op --ignore-working-copy file show {}"
+    else
+        op="$REV_OP"
+        local rev="$CURRENT_REV"
+        file_list_cmd="jj --at-op=$op --ignore-working-copy file list -r $rev"
+        file_show_cmd="jj --at-op=$op --ignore-working-copy file show -r $rev {}"
+    fi
+
+    # Check if there are any files
+    local file_count
+    file_count="$(eval "$file_list_cmd" 2>/dev/null | head -1 | wc -l)" || true
+    if (( file_count == 0 )); then
+        ERROR_FLASH="No files at this revision"
+        return
+    fi
+
+    pause_terminal
+
+    local fzf_out fzf_query
+    fzf_out="$(mktemp)"
+    fzf_query="$(mktemp)"
+
+    # Persist query to temp file on every keystroke so Esc doesn't lose it
+    eval "$file_list_cmd" 2>/dev/null |
+        fzf --multi \
+            --query="$FZF_LAST_QUERY" \
+            --prompt="Files > " \
+            --header="Tab: select  Enter: view  ^R: restore  Esc: back" \
+            --preview="$file_show_cmd" \
+            --preview-window="right:60%:wrap:border-left" \
+            --bind="enter:execute($file_show_cmd | less)" \
+            --bind="ctrl-r:accept" \
+            --bind="tab:toggle+down,shift-tab:toggle+up" \
+            --bind="change:execute-silent(printf '%s' {q} > $fzf_query)" \
+            --bind="start:execute-silent(printf '%s' {q} > $fzf_query)" \
+        > "$fzf_out" 2>/dev/null || true
+
+    # Read persisted query (survives Esc/Ctrl-C)
+    FZF_LAST_QUERY="$(cat "$fzf_query" 2>/dev/null)" || true
+    local selected=""
+    selected="$(cat "$fzf_out" 2>/dev/null)" || true
+    rm -f "$fzf_out" "$fzf_query"
+
+    if [[ -n "$selected" ]]; then
+        local rev=""
+        if [[ "$MODE" == "revs" ]]; then rev="$CURRENT_REV"; fi
+        do_restore "$op" "$rev" "$selected"
+    fi
+
+    resume_terminal
+}
+
+# --- Restore workflow ---
+do_restore() {
+    local op="$1" rev="$2" selected="$3"
+
+    # Show files and confirm
+    echo ""
+    printf "${BOLD}Files to restore:${NC}\n"
+    while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        printf "  %s\n" "$file"
+    done <<< "$selected"
+    echo ""
+
+    printf "Restore these files into a new sibling revision? [y/N] "
+    local confirm
+    read -r confirm
+    if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+        echo "Cancelled."
+        sleep 1
+        return
+    fi
+
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+
+    # Capture files into temp directory
+    while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        local dir
+        dir="$(dirname "$file")"
+        mkdir -p "$tmpdir/$dir"
+        if [[ -n "$rev" ]]; then
+            jj --at-op="$op" --ignore-working-copy file show -r "$rev" "$file" > "$tmpdir/$file" 2>/dev/null || true
+        else
+            jj --at-op="$op" --ignore-working-copy file show "$file" > "$tmpdir/$file" 2>/dev/null || true
+        fi
+    done <<< "$selected"
+
+    # Count files
+    local file_count=0
+    while IFS= read -r f; do
+        if [[ -n "$f" ]]; then (( file_count++ )) || true; fi
+    done <<< "$selected"
+
+    local op_short="${op:0:7}"
+
+    # Create sibling revision, copy files, switch back
+    if jj new @- -m "timewarp: restore ${file_count} file(s) from op ${op_short}" 2>/dev/null; then
+        local ws_root
+        ws_root="$(jj workspace root 2>/dev/null)"
+
+        while IFS= read -r file; do
+            [[ -z "$file" ]] && continue
+            local dir
+            dir="$(dirname "$file")"
+            mkdir -p "$ws_root/$dir"
+            cp "$tmpdir/$file" "$ws_root/$file"
+        done <<< "$selected"
+
+        # Switch back to original change
+        if ! jj edit "$ORIGINAL_CHANGE_ID" 2>/dev/null; then
+            printf "${RED}Failed to switch back. Your original change ID: %s${NC}\n" "$ORIGINAL_CHANGE_ID"
+            sleep 3
+        else
+            printf "${GREEN}Restored %d file(s) into new sibling revision.${NC}\n" "$file_count"
+            sleep 2
+        fi
+    else
+        printf "${RED}Failed to create sibling revision.${NC}\n"
+        # Safety: try to get back to original
+        jj edit "$ORIGINAL_CHANGE_ID" 2>/dev/null || true
+        printf "Your original change ID: %s\n" "$ORIGINAL_CHANGE_ID"
+        sleep 3
+    fi
+
+    rm -rf "$tmpdir"
+}
+
+# --- Main loop ---
+main_loop() {
+    while true; do
+        render_screen
+        ERROR_FLASH=""
+
+        local key
+        read -rsn1 key
+
+        case "$key" in
+            j) handle_down ;;
+            k) handle_up ;;
+            h) handle_left ;;
+            l) handle_right ;;
+            f|'') open_file_browser ;;
+            g) if [[ "$MODE" == "ops" ]]; then switch_to_revs; fi ;;
+            o) if [[ "$MODE" == "revs" ]]; then switch_to_ops; fi ;;
+            ' ') if [[ "$MODE" == "ops" ]]; then drill_down; fi ;;
+            q|$'\x03'|$'\x04') break ;;
+            $'\e')
+                local seq=""
+                read -rsn2 -t 0.1 seq || true
+                case "$seq" in
+                    '[A') handle_up ;;
+                    '[B') handle_down ;;
+                    '[D') handle_left ;;
+                    '[C') handle_right ;;
+                    '') break ;;  # bare Esc
+                esac
+                ;;
+        esac
+    done
+}
+
+# --- Entry point ---
+main() {
+    parse_args "$@"
+    check_dependencies
+    check_working_copy
+    save_current_change
+    load_operations
+
+    if (( OP_COUNT == 0 )); then
+        error "no operations found"
+        exit 1
+    fi
+
+    # If starting in revs mode, bootstrap from the current op
+    if [[ "$MODE" == "revs" ]]; then
+        switch_to_revs
+    fi
+
+    trap cleanup_terminal EXIT INT TERM
+    setup_terminal
+    main_loop
+}
+
+main "$@"
