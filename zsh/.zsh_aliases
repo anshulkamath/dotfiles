@@ -114,3 +114,8 @@ parse-ansible-vars() {
     fi
     rg "$PATTERN=([^\\s]+)" -o -r '$1' --color never
 }
+
+export-env() {
+    stat $1 > /dev/null || return 1
+    export `cat $1 | grep -vE "^#" | xargs`
+}

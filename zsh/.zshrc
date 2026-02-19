@@ -2,9 +2,11 @@ if [[ -f /opt/homebrew/bin/brew ]]; then
 	eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-# path expansions
+# go options
 export GOPATH="$CONF/go"
+export GOPRIVATE="github.com/fluidstackio*"
 
+# path expansions
 export PATH="$GOPATH/bin:$PATH"
 export PATH="$HOME/.config/bin:$PATH"
 export PATH="$HOME/.rd/bin:$PATH"
@@ -18,18 +20,26 @@ source ~/.config/zsh/.zshopts
 source ~/.config/zsh/.zsh_packages
 source /opt/homebrew/Caskroom/gcloud-cli/latest/google-cloud-sdk/completion.zsh.inc
 
-test -f ~/.config/zsh/envs.work && . $_ 2> /dev/null
+test -f ~/.config/zsh/envs.work && . $_ > /dev/null 2>&1
 
-if which fzf 2> /dev/null; then
-	eval "$(fzf --zsh)"
+if which fzf > /dev/null 2>&1; then
+	eval "$(fzf --zsh)" > /dev/null
 fi
 
-if which direnv 2> /dev/null; then
-    eval "$(direnv hook zsh)"
+if which direnv > /dev/null 2>&1; then
+    eval "$(direnv hook zsh)" > /dev/null
 fi
 
-if which gt 2> /dev/null; then
-    eval "$(gt completion zsh)"
+if which gt > /dev/null 2>&1; then
+    eval "$(gt completion zsh)" > /dev/null
+fi
+
+if which moon > /dev/null 2>&1; then
+    eval "$(moon completions --shell zsh)" > /dev/null
+fi
+
+if which jj > /dev/null 2>&1; then
+    source <(jj util completion zsh)
 fi
 
 # The next line updates PATH for Nebius CLI.
@@ -38,6 +48,10 @@ if [ -f '/Users/anshulkamath/.nebius/path.zsh.inc' ]; then source '/Users/anshul
 export NVM_DIR="$HOME/.nvm"
 [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
 [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+
+# proto
+export PROTO_HOME="$XDG_DATA_HOME/proto";
+export PATH="$PROTO_HOME/shims:$PROTO_HOME/bin:$PATH";
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"

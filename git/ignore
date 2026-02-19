@@ -1,10 +1,9 @@
 # ANSHUL - YOU ARE EDITING THE GLOBAL GITIGNORE
 # MAKE SURE YOU DIDN'T MISTYPE .gitignore!
 
-.DS_Store
+**.DS_Store
 .vscode
 *.code-workspace
-go.work**
 .devcontainer
 *debug_bin*
 
@@ -43,6 +42,9 @@ helm/charts
 
 **/.claude/settings.local.json
 
-*/.terraform/*/*
+**/.terraform/**
 
 SESSION_SUMMARY.md
+
+.zed/**
+.moon/cache**

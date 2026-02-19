@@ -279,8 +279,16 @@ if.app-id = 'com.anthropic.claudefordesktop'
 run = ['move-node-to-workspace A']
 
 [[on-window-detected]]
+if.app-id = 'company.thebrowser.Browser'
+run = ['move-node-to-workspace B']
+
+[[on-window-detected]]
 if.app-id = 'dev.zed.Zed'
 run = ['move-node-to-workspace Z']
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = ['move-node-to-workspace O']
 
 [workspace-to-monitor-force-assignment]
 B = 2
