@@ -1,5 +1,6 @@
 # load our own completion functions
 fpath=("$ZDOTDIR/packages/pure" $fpath)
+fpath=(${ASDF_DATA_DIR:-$HOME/.asdf}/completions $fpath)
 
 autoload -U compinit
 compinit

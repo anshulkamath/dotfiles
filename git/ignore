@@ -31,10 +31,7 @@ __pycache__
 .zsh_sessions
 .env
 .env*
-config.yaml
-
-# sandbox environments
-*sandbox*
+config.local.yaml
 
 .ansible
 
@@ -48,3 +45,11 @@ SESSION_SUMMARY.md
 
 .zed/**
 .moon/cache**
+**/.safeguard/**
+*.local.*
+
+.gitnexus
+
+*node_modules*
+*.vite*
+ws-*

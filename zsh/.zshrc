@@ -6,11 +6,15 @@ fi
 export GOPATH="$CONF/go"
 export GOPRIVATE="github.com/fluidstackio*"
 
+# home configurations
+export ASDF_DATA_DIR="$XDG_CONFIG_HOME/asdf"
+
 # path expansions
 export PATH="$GOPATH/bin:$PATH"
 export PATH="$HOME/.config/bin:$PATH"
 export PATH="$HOME/.rd/bin:$PATH"
 export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 
 # Bug with colima: https://github.com/k3d-io/k3d/issues/1449
 export K3D_FIX_DNS=0
@@ -42,12 +46,9 @@ if which jj > /dev/null 2>&1; then
     source <(jj util completion zsh)
 fi
 
-# The next line updates PATH for Nebius CLI.
-if [ -f '/Users/anshulkamath/.nebius/path.zsh.inc' ]; then source '/Users/anshulkamath/.nebius/path.zsh.inc'; fi
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+# [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
 # proto
 export PROTO_HOME="$XDG_DATA_HOME/proto";

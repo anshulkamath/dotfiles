@@ -1,0 +1,50 @@
+#!/bin/bash
+set -euo pipefail
+
+if [ $# -ne 2 ]; then
+  echo "Usage: claude-cp <dest-path> <session-id>" >&2
+  exit 1
+fi
+
+dest_path="$1"
+session_id="$2"
+projects_dir="$HOME/.claude/projects"
+
+# Validate destination exists on disk
+dest_abs="$(cd "$dest_path" 2>/dev/null && pwd)" || {
+  echo "Error: destination path '$dest_path' does not exist" >&2
+  exit 1
+}
+
+# Find the session JSONL
+src_jsonl="$(find "$projects_dir" -maxdepth 2 -name "${session_id}.jsonl" -print -quit 2>/dev/null)"
+if [ -z "$src_jsonl" ]; then
+  echo "Error: session '$session_id' not found" >&2
+  exit 1
+fi
+
+src_dir="$(dirname "$src_jsonl")"
+
+# Extract the original cwd from the source JSONL
+old_path="$(grep -o '"cwd":"[^"]*"' "$src_jsonl" 2>/dev/null | head -1 | sed 's/"cwd":"//;s/"$//')"
+
+# Encode destination: /. becomes --, then / becomes -
+encoded_dest="$(echo "$dest_abs" | sed 's/\/\./--%/g' | sed 's/\//-/g' | sed 's/%//g')"
+target_dir="$projects_dir/$encoded_dest"
+
+mkdir -p "$target_dir"
+cp "$src_jsonl" "$target_dir/"
+
+# Copy subdirectory if it exists for tools, hooks, and such
+if [ -d "$src_dir/$session_id" ]; then
+  cp -r "$src_dir/$session_id" "$target_dir/"
+fi
+
+# Rewrite path references in the copied JSONL
+if [ -n "$old_path" ]; then
+  old_escaped="$(printf '%s\n' "$old_path" | sed 's/[[\.*^$()+?{|]/\\&/g')"
+  new_escaped="$(printf '%s\n' "$dest_abs" | sed 's/[&/\]/\\&/g')"
+  sed -i '' "s|$old_escaped|$new_escaped|g" "$target_dir/${session_id}.jsonl"
+fi
+
+echo "Copied session $session_id to $target_dir"
