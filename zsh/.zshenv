@@ -11,4 +11,6 @@ export TERM="xterm-256color"
 . "$HOME/.cargo/env"
 
 # uv
-export PATH="/Users/anshulkamath/.config/local/share/../bin:$PATH"
+export PATH="$HOME/.config/bin:$PATH"
+
+alias assume=". assume"

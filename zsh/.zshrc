@@ -22,7 +22,8 @@ export K3D_FIX_DNS=0
 source ~/.config/zsh/.zsh_aliases
 source ~/.config/zsh/.zshopts
 source ~/.config/zsh/.zsh_packages
-source /opt/homebrew/Caskroom/gcloud-cli/latest/google-cloud-sdk/completion.zsh.inc
+[[ -f /opt/homebrew/Caskroom/gcloud-cli/latest/google-cloud-sdk/completion.zsh.inc ]] && \
+	source /opt/homebrew/Caskroom/gcloud-cli/latest/google-cloud-sdk/completion.zsh.inc
 
 test -f ~/.config/zsh/envs.work && . $_ > /dev/null 2>&1
 

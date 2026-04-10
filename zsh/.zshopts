@@ -2,8 +2,12 @@
 fpath=("$ZDOTDIR/packages/pure" $fpath)
 fpath=(${ASDF_DATA_DIR:-$HOME/.asdf}/completions $fpath)
 
-autoload -U compinit
-compinit
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
+	compinit
+else
+	compinit -C
+fi
 
 # pure prompt
 autoload -U promptinit
@@ -34,8 +38,10 @@ SAVEHIST="$HISTSIZE"
 setopt HIST_EXPIRE_DUPS_FIRST
 setopt HIST_FIND_NO_DUPS
 setopt HIST_IGNORE_ALL_DUPS
-setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_SPACE
 setopt HIST_SAVE_NO_DUPS
 setopt SHARE_HISTORY
-setopt APPENDHISTORY
+
+setopt AUTO_CD
+setopt PUSHD_IGNORE_DUPS
+setopt INTERACTIVE_COMMENTS

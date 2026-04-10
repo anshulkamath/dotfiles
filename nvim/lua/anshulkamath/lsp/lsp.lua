@@ -1,6 +1,14 @@
 return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
+  init = function()
+    -- Runs at startup before any files are opened, so filetype detection
+    -- for blueprint.yaml picks up the "dcfab" mapping immediately.
+    vim.filetype.add({
+      filename = { ["blueprint.yaml"] = "dcfab" },
+    })
+    vim.treesitter.language.register("yaml", "dcfab")
+  end,
   dependencies = {
     "hrsh7th/cmp-nvim-lsp",
     { "antosha417/nvim-lsp-file-operations", config = true },
@@ -70,10 +78,26 @@ return {
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
 
-    -- configure python server
     lspconfig["gopls"].setup({
       capabilities = capabilities,
       on_attach = on_attach,
+    })
+
+    -- Autostart the dcfab LSP whenever a blueprint.yaml buffer is opened.
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = "dcfab",
+      callback = function(args)
+        vim.lsp.start({
+          name = "dcfab",
+          cmd = {
+            "/Users/anshulkamath/Developer/fluidstack/infra/foundry/projects/dcfab/bin/dcfab",
+            "lsp",
+          },
+          root_dir = vim.fs.root(args.buf, { ".git", "moon.yaml" }),
+          capabilities = capabilities,
+          on_attach = on_attach,
+        })
+      end,
     })
 
   end,

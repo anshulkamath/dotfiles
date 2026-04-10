@@ -14,7 +14,7 @@ alias dotfiles='cd $DEVELOPER/public/dotfiles'
 alias zshrc='vim $CONF/zsh/.zshrc && source $_'
 alias zshopts='vim $CONF/zsh/.zshopts && source $_'
 alias aliases='vim $CONF/zsh/.zsh_aliases && source $_'
-alias local-aliases='vim $CONF/zsh/.zsh_alises.local && source $_'
+alias local-aliases='vim $CONF/zsh/.zsh_aliases.local && source $_'
 alias gitconfig='vim $CONF/git/config'
 alias gitignore='vim $CONF/git/ignore'
 alias vimplugs='vim $HOME/.vim/init/plugins.vim'
@@ -38,7 +38,7 @@ test -f "$CONF/zsh/.zsh_aliases.local" && source $_
 
 errcho() {
     echo $1 > /dev/stderr
-    exit 1
+    return 1
 }
 
 safe-attach() {
@@ -71,7 +71,7 @@ ssh-grep () {
         echo "Usage: $(basename $0) [TOP_FILTER] IP_PATTERN"
         echo
         echo "Ingests a stdin and extracts a hostname/IP pattern to SSH into."
-        exit 1
+        return 1
     fi
 
     TMP_FILE=`mktemp`
