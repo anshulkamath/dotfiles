@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""gh-prs — fzf overview of your open GitHub PRs with CI, review, and merge status."""
+"""gh-prs — fzf overview of open PRs in the current repo."""
 
 import json
 import subprocess
 import sys
+import os
 
 GREEN  = '\033[0;32m'
 YELLOW = '\033[0;33m'
@@ -12,14 +13,14 @@ CYAN   = '\033[0;36m'
 WHITE  = '\033[0;97m'
 DIM    = '\033[2;37m'
 RESET  = '\033[0m'
+BOLD   = '\033[1m'
 
 QUERY = '''
-{
-  search(query: "is:pr is:open author:@me", type: ISSUE, first: 50) {
-    nodes {
-      ... on PullRequest {
-        number title url isDraft state reviewDecision mergeable
-        repository { nameWithOwner }
+query($repo: String!, $owner: String!) {
+  repository(owner: $owner, name: $repo) {
+    pullRequests(states: OPEN, first: 50, orderBy: {field: UPDATED_AT, direction: DESC}) {
+      nodes {
+        number title url isDraft reviewDecision mergeable
         commits(last: 1) {
           nodes { commit { statusCheckRollup { state } } }
         }
@@ -29,69 +30,93 @@ QUERY = '''
 }
 '''
 
+def get_current_repo():
+    r = subprocess.run(['gh', 'repo', 'view', '--json', 'nameWithOwner', '-q', '.nameWithOwner'],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return None, None
+    nwo = r.stdout.strip()
+    parts = nwo.split('/')
+    return (parts[0], parts[1]) if len(parts) == 2 else (None, None)
+
 def fmt_status(pr):
     if pr.get('isDraft'):
-        return f'{DIM}⊘ draft {RESET}'
-    return f'{GREEN}● open  {RESET}'
+        return DIM, '⊘ draft'
+    return GREEN, '● open '
 
 def fmt_ci(pr):
     try:
         state = pr['commits']['nodes'][0]['commit']['statusCheckRollup']['state']
     except (KeyError, IndexError, TypeError):
         state = None
-    if state == 'SUCCESS':   return f'{GREEN}✓ ci  {RESET}'
-    if state == 'FAILURE':   return f'{RED}✗ ci  {RESET}'
-    if state == 'PENDING':   return f'{YELLOW}⏳ ci  {RESET}'
-    return f'{DIM}· ci  {RESET}'
+    if state == 'SUCCESS': return GREEN,  '✓ ci'
+    if state == 'FAILURE': return RED,    '✗ ci'
+    if state == 'PENDING': return YELLOW, '⏳ ci'
+    return DIM, '· ci'
 
 def fmt_review(pr):
     d = pr.get('reviewDecision') or ''
-    if d == 'APPROVED':           return f'{GREEN}✓ rev {RESET}'
-    if d == 'CHANGES_REQUESTED':  return f'{RED}✗ rev {RESET}'
-    if d == 'REVIEW_REQUIRED':    return f'{YELLOW}? rev {RESET}'
-    return f'{DIM}· rev {RESET}'
+    if d == 'APPROVED':          return GREEN,  '✓ rev'
+    if d == 'CHANGES_REQUESTED': return RED,    '✗ rev'
+    if d == 'REVIEW_REQUIRED':   return YELLOW, '? rev'
+    return DIM, '· rev'
 
 def fmt_merge(pr):
     m = pr.get('mergeable') or ''
-    if m == 'CONFLICTING': return f'{RED}⚡{RESET}'
-    if m == 'MERGEABLE':   return f'{GREEN}✓{RESET}'
-    return f'{DIM}·{RESET}'
+    if m == 'CONFLICTING': return RED,   '⚡'
+    if m == 'MERGEABLE':   return GREEN, '✓'
+    return DIM, '·'
+
+def col(color, text):
+    return f'{color}{text}{RESET}'
 
 def main():
+    owner, repo = get_current_repo()
+    if not owner:
+        print(f'{RED}not inside a GitHub repo{RESET}')
+        sys.exit(1)
+
     raw = subprocess.run(
-        ['gh', 'api', 'graphql', '-f', f'query={QUERY}'],
+        ['gh', 'api', 'graphql',
+         '-f', f'query={QUERY}',
+         '-f', f'repo={repo}',
+         '-f', f'owner={owner}'],
         capture_output=True, text=True
     )
     if raw.returncode != 0:
         print(f'{RED}gh api failed:{RESET} {raw.stderr.strip()}')
         sys.exit(1)
 
-    prs = json.loads(raw.stdout)['data']['search']['nodes']
+    data = json.loads(raw.stdout)
+    prs = data['data']['repository']['pullRequests']['nodes']
 
     if not prs:
-        print(f'\n  {DIM}no open PRs{RESET}\n\n  press any key to close...')
+        print(f'\n  {DIM}no open PRs in {owner}/{repo}{RESET}\n\n  press any key...')
         sys.stdin.read(1)
         return
 
     lines = []
     for pr in prs:
-        repo  = pr['repository']['nameWithOwner'].split('/')[-1]
-        num   = pr['number']
-        title = pr['title']
-        url   = pr['url']
+        sc, st = fmt_status(pr)
+        cc, ct = fmt_ci(pr)
+        rc, rt = fmt_review(pr)
+        mc, mt = fmt_merge(pr)
+        num    = str(pr['number'])
+        title  = pr['title']
+        url    = pr['url']
 
+        # Fixed-width plain text first, then wrap in color — keeps alignment intact
         display = (
-            f'{fmt_status(pr)} {fmt_ci(pr)} {fmt_review(pr)} {fmt_merge(pr)}'
-            f'  {WHITE}{repo:<20}{RESET}'
-            f'  {DIM}#{num:<5}{RESET}'
-            f'  {title}'
+            f'{col(sc, f"{st:<7}")} '
+            f'{col(cc, f"{ct:<5}")} '
+            f'{col(rc, f"{rt:<6}")} '
+            f'{col(mc, f"{mt:<2}")}  '
+            f'{col(BOLD, f"#{num:<6}")}  '
+            f'{title}'
         )
         lines.append(f'{url}\t{display}')
 
-    header = (
-        f'{"STATUS":<8} {"CI":<7} {"REV":<7} {"M":<2}'
-        f'  {"REPO":<20}  {"#":<7}  TITLE'
-    )
+    header = f'{"STATUS":<7}  {"CI":<5}  {"REV":<6}  {"M":<2}  {"#":<7}  TITLE'
 
     fzf_input = f'__hdr__\t{header}\n' + '\n'.join(lines)
 
@@ -100,7 +125,7 @@ def main():
          '--ansi', '--no-sort', '--no-multi',
          '--layout=reverse-list', '--header-lines=1',
          '--delimiter=\t', '--with-nth=2',
-         '--prompt= prs  ',
+         f'--prompt= {owner}/{repo}  ',
          '--header=enter → open in browser   q/esc → close',
          '--color=header:italic:dim',
          '--bind=q:abort,esc:abort'],
@@ -116,4 +141,10 @@ def main():
         subprocess.run(['open', url])
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        print(f'\n{RED}crash:{RESET} {e}\n')
+        traceback.print_exc()
+        input('\npress enter to close...')
