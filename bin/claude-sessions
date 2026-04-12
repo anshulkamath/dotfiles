@@ -26,13 +26,27 @@ get_state() {
   [ -f "$state_file" ] && python3 -c "import json; print(json.load(open('$state_file')).get('status',''))" 2>/dev/null || echo ""
 }
 
+# Build set of currently attached sessions
+attached=$(tmux list-clients -F '#{client_session}' 2>/dev/null | sort -u)
+
+is_attached() {
+  grep -qx "$1" <<< "$attached"
+}
+
 lines=()
 while IFS='|' read -r session win_idx _win_name pane_id cmd path; do
   [[ "$cmd" != *claude* ]] && continue
   state=$(get_state "$pane_id")
   target="${session}:${win_idx}"
   dir=$(basename "$path")
-  display="$(fmt_state "$state")  ${WHITE}$(printf '%-24s' "$session")${RESET}  $(printf '%-18s' "$dir")  ${DIM}${path}${RESET}"
+
+  if is_attached "$session"; then
+    attached_col="${GREEN}☑${RESET}"
+  else
+    attached_col="${DIM}☐${RESET}"
+  fi
+
+  display="${attached_col}  $(fmt_state "$state")  ${WHITE}$(printf '%-22s' "$session")${RESET}  $(printf '%-16s' "$dir")  ${DIM}${path}${RESET}"
   lines+=("${target}	${display}")
 done < <(tmux list-panes -a \
   -F '#{session_name}|#{window_index}|#{window_name}|#{pane_id}|#{pane_current_command}|#{pane_current_path}')
@@ -43,6 +57,9 @@ if [ ${#lines[@]} -eq 0 ]; then
   exit 0
 fi
 
+header=$(printf '%s  %-13s  %-22s  %-16s  %s' \
+  "AT" "STATE" "SESSION" "DIR" "PATH")
+
 selected=$(printf '%s\n' "${lines[@]}" | fzf \
   --ansi \
   --no-sort --no-multi \
@@ -50,7 +67,8 @@ selected=$(printf '%s\n' "${lines[@]}" | fzf \
   --delimiter='	' \
   --with-nth=2 \
   --prompt=" claude  " \
-  --header="enter to jump   q/esc to close" \
+  --header-lines=0 \
+  --header="$(printf '%s\n%s' "$header" 'enter to jump   q/esc to close')" \
   --color='header:italic:dim' \
   --bind='q:abort,esc:abort') || exit 0
 
