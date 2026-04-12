@@ -1,0 +1,59 @@
+#!/bin/bash
+# claude-sessions — fzf overview of all running claude panes with agent state
+# Select a session to jump to it.
+
+set -euo pipefail
+
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[0;33m'
+CYAN=$'\033[0;36m'
+WHITE=$'\033[0;97m'
+DIM=$'\033[2;37m'
+RESET=$'\033[0m'
+
+fmt_state() {
+  case "${1:-}" in
+    processing|running_tool) printf '%s⠿ running    %s' "$GREEN"  "$RESET" ;;
+    waiting_for_approval)    printf '%s⚡ needs input%s' "$YELLOW" "$RESET" ;;
+    waiting_for_input)       printf '%s✓ done       %s' "$CYAN"   "$RESET" ;;
+    *)                       printf '%s○ idle       %s' "$DIM"    "$RESET" ;;
+  esac
+}
+
+get_state() {
+  local pane_id="$1"
+  local state_file="/tmp/claude-sessions/${pane_id#%}"
+  [ -f "$state_file" ] && python3 -c "import json; print(json.load(open('$state_file')).get('status',''))" 2>/dev/null || echo ""
+}
+
+lines=()
+while IFS='|' read -r session win_idx _win_name pane_id cmd path; do
+  [[ "$cmd" != *claude* ]] && continue
+  state=$(get_state "$pane_id")
+  target="${session}:${win_idx}"
+  dir=$(basename "$path")
+  display="$(fmt_state "$state")  ${WHITE}$(printf '%-24s' "$session")${RESET}  $(printf '%-18s' "$dir")  ${DIM}${path}${RESET}"
+  lines+=("${target}	${display}")
+done < <(tmux list-panes -a \
+  -F '#{session_name}|#{window_index}|#{window_name}|#{pane_id}|#{pane_current_command}|#{pane_current_path}')
+
+if [ ${#lines[@]} -eq 0 ]; then
+  printf '\n  %sno claude sessions running%s\n\n  press any key to close...' "$DIM" "$RESET"
+  read -r -s -n1
+  exit 0
+fi
+
+selected=$(printf '%s\n' "${lines[@]}" | fzf \
+  --ansi \
+  --no-sort --no-multi \
+  --layout=reverse-list \
+  --delimiter='	' \
+  --with-nth=2 \
+  --prompt=" claude  " \
+  --header="enter to jump   q/esc to close" \
+  --color='header:italic:dim' \
+  --bind='q:abort,esc:abort') || exit 0
+
+[ -z "$selected" ] && exit 0
+target=$(printf '%s' "$selected" | cut -f1)
+[ -n "$target" ] && tmux switch-client -t "$target"

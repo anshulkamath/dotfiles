@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""
+Claude Code hook — forwards session state to tmux-agent-indicator.
+Add this as a hook command for PreToolUse, PostToolUse, Stop,
+Notification, and PermissionRequest in ~/.claude/settings.json.
+"""
+
+import json
+import os
+import subprocess
+import sys
+
+AGENT_STATE = os.path.expanduser(
+    "~/.config/tmux/plugins/tmux-agent-indicator/scripts/agent-state.sh"
+)
+
+EVENT_MAP = {
+    "PreToolUse":       "running",
+    "PostToolUse":      "running",
+    "Stop":             "done",
+    "PermissionRequest": "needs-input",
+}
+
+def set_state(state: str) -> None:
+    if not os.path.exists(AGENT_STATE):
+        return
+    if not os.environ.get("TMUX"):
+        return
+    subprocess.run(
+        [AGENT_STATE, "--agent", "claude", "--state", state],
+        timeout=5,
+        capture_output=True,
+    )
+
+try:
+    data = json.load(sys.stdin)
+    event = data.get("hook_event_name", "")
+
+    if event == "Notification":
+        if data.get("notification_type") == "idle_prompt":
+            set_state("done")
+    elif event in EVENT_MAP:
+        set_state(EVENT_MAP[event])
+
+except Exception:
+    pass
+
+sys.exit(0)
