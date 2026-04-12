@@ -46,6 +46,10 @@ cat << 'EOF' | fzf \
    ctrl+] → .          dotfiles  ~/Developer/public/dotfiles
    ctrl+] → o          fzf pick any dir in ~/Developer → new Kitty tab
 
+ OVERVIEWS  (ctrl+/)
+   ctrl+/ → c          claude sessions (state, attached, dir)
+   ctrl+/ → g          github PRs (CI, review, merge status)
+
  CLAUDE PROJECTS  (ctrl+\)
    ctrl+\ → n          notes
    ctrl+\ → .          dotfiles
