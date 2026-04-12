@@ -46,8 +46,12 @@ cat << 'EOF' | fzf \
    ctrl+] → .          dotfiles  ~/Developer/public/dotfiles
 
  CLAUDE PROJECTS  (ctrl+\)
-   ctrl+\ → N          notes in claude session
-   ctrl+\ → .          dotfiles in claude session
+   ctrl+\ → n          notes
+   ctrl+\ → .          dotfiles
+   ctrl+\ → f          foundry
+   ctrl+\ → s          systems
+   ctrl+\ → a          network-artifacts
+   ctrl+\ → o          fzf pick any dir in ~/Developer
 
  COPY MODE
    prefix + [          enter copy mode
