@@ -1,0 +1,13 @@
+#!/bin/bash
+# Outputs formatted Spotify track for tmux status bar (including separator).
+# Outputs nothing when not playing so the separator disappears too.
+track=$(osascript \
+  -e 'if application "Spotify" is running then' \
+  -e '  tell application "Spotify"' \
+  -e '    if player state is playing then' \
+  -e '      return artist of current track & " - " & name of current track' \
+  -e '    end if' \
+  -e '  end tell' \
+  -e 'end if' 2>/dev/null)
+
+[ -n "$track" ] && printf '#[fg=colour244]│#[fg=colour171]  %s ' "$track"
