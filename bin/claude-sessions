@@ -57,18 +57,18 @@ if [ ${#lines[@]} -eq 0 ]; then
   exit 0
 fi
 
-header=$(printf '%s  %-13s  %-22s  %-16s  %s' \
-  "AT" "STATE" "SESSION" "DIR" "PATH")
+header_row="__header__	$(printf '%s  %-13s  %-22s  %-16s  %s' \
+  "EN" "STATE" "SESSION" "DIR" "PATH")"
 
-selected=$(printf '%s\n' "${lines[@]}" | fzf \
+selected=$(printf '%s\n' "$header_row" "${lines[@]}" | fzf \
   --ansi \
   --no-sort --no-multi \
   --layout=reverse-list \
+  --header-lines=1 \
   --delimiter='	' \
   --with-nth=2 \
   --prompt=" claude  " \
-  --header-lines=0 \
-  --header="$(printf '%s\n%s' "$header" 'enter to jump   q/esc to close')" \
+  --header='enter to jump   q/esc to close' \
   --color='header:italic:dim' \
   --bind='q:abort,esc:abort') || exit 0
 
