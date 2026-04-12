@@ -1,0 +1,70 @@
+#!/bin/bash
+# tmux-sessions — fzf overview of all tmux sessions and windows
+# Select to switch to it; detach/reattach freely with prefix+d.
+
+set -euo pipefail
+
+GREEN=$'\033[0;32m'
+CYAN=$'\033[0;36m'
+WHITE=$'\033[0;97m'
+DIM=$'\033[2;37m'
+BOLD=$'\033[1m'
+RESET=$'\033[0m'
+
+# Currently attached sessions
+attached=$(tmux list-clients -F '#{client_session}' 2>/dev/null | sort -u)
+
+is_attached() { grep -qx "$1" <<< "$attached" 2>/dev/null; }
+
+# Active window per session
+active_windows=$(tmux list-windows -a -F '#{session_name}:#{window_index}:#{window_active}' \
+  | awk -F: '$3=="1" {print $1":"$2}')
+
+is_active_window() { grep -qx "$1" <<< "$active_windows" 2>/dev/null; }
+
+lines=()
+while IFS='|' read -r session win_idx win_name pane_cmd pane_path; do
+  target="${session}:${win_idx}"
+  dir=$(basename "$pane_path")
+
+  if is_attached "$session"; then
+    en="${GREEN}☑${RESET}"
+  else
+    en="${DIM}☐${RESET}"
+  fi
+
+  if is_active_window "$target"; then
+    win_style="${BOLD}${WHITE}"
+  else
+    win_style="${DIM}"
+  fi
+
+  display="${en}  ${win_style}$(printf '%-22s' "$session")${RESET}  ${CYAN}$(printf '%-3s' "$win_idx")${RESET}  ${win_style}$(printf '%-18s' "$win_name")${RESET}  $(printf '%-12s' "$pane_cmd")  ${DIM}${dir}${RESET}"
+  lines+=("${target}	${display}")
+done < <(tmux list-windows -a \
+  -F '#{session_name}|#{window_index}|#{window_name}|#{pane_current_command}|#{pane_current_path}')
+
+if [ ${#lines[@]} -eq 0 ]; then
+  printf '\n  %sno sessions%s\n' "$DIM" "$RESET"
+  read -r -s -n1
+  exit 0
+fi
+
+header_row="__hdr__	$(printf '%-2s  %-22s  %-3s  %-18s  %-12s  %s' \
+  'EN' 'SESSION' 'WIN' 'WINDOW NAME' 'CMD' 'DIR')"
+
+selected=$(printf '%s\n' "$header_row" "${lines[@]}" | fzf \
+  --ansi \
+  --no-sort --no-multi \
+  --layout=reverse-list \
+  --header-lines=1 \
+  --delimiter='	' \
+  --with-nth=2 \
+  --prompt=" sessions  " \
+  --header="enter to switch   prefix+d to detach   q/esc to close" \
+  --color='header:italic:dim' \
+  --bind='q:abort,esc:abort') || exit 0
+
+[ -z "$selected" ] && exit 0
+target=$(printf '%s' "$selected" | cut -f1)
+[ -n "$target" ] && tmux switch-client -t "$target"

@@ -49,6 +49,7 @@ cat << 'EOF' | fzf \
  OVERVIEWS  (ctrl+/)
    ctrl+/ → c          claude sessions (state, attached, dir)
    ctrl+/ → g          github PRs (CI, review, merge status)
+   ctrl+/ → t          tmux sessions + windows (switch, detach, reattach)
 
  CLAUDE PROJECTS  (ctrl+\)
    ctrl+\ → n          notes
