@@ -13,6 +13,7 @@ session list, and you can switch into them as full windows anytime.
 
 | Binding       | Session name   | Directory                              | Command |
 |---------------|----------------|----------------------------------------|---------|
+| `prefix + n`  | (prompted)     | —                                      | new Kitty window via `attach` |
 | `prefix + g`  | `scratch`      | current pane path                      | zsh     |
 | `prefix + G`  | `git`          | current pane path                      | zsh     |
 
@@ -30,7 +31,7 @@ Quick-jump to project directories as floating sessions.
 
 | Binding          | Session name | Directory                            |
 |------------------|--------------|--------------------------------------|
-| `ctrl+] → N`     | `notes`      | `~/Developer/personal/notes`         |
+| `ctrl+] → n`     | `notes`      | `~/Developer/personal/notes`         |
 | `ctrl+] → .`     | `dotfiles`   | `~/Developer/public/dotfiles`        |
 
 ---
@@ -50,19 +51,28 @@ existing one (preserving conversation context).
 
 ## Pane management
 
-| Binding           | Action                          |
-|-------------------|---------------------------------|
-| `prefix + \|`     | Split horizontal                |
-| `prefix + -`      | Split vertical                  |
-| `prefix + h/j/k/l`| Resize pane (repeatable)        |
-| `prefix + m`      | Zoom/unzoom pane                |
-| `prefix + !`      | Break pane into its own window  |
-| `ctrl+h/j/k/l`    | Navigate panes (vim-tmux-navigator) |
+| Binding           | Action                                              |
+|-------------------|-----------------------------------------------------|
+| `prefix + \|`     | Split horizontal                                    |
+| `prefix + -`      | Split vertical                                      |
+| `prefix + h/j/k/l`| Move pane in direction (repeatable)                 |
+| `prefix + H/J/K/L`| Resize pane (repeatable)                            |
+| `prefix + m`      | Zoom/unzoom pane                                    |
+| `prefix + !`      | Break pane → new window                             |
+| `prefix + P`      | Pull a pane from any window → here (fzf)            |
+| `prefix + S`      | Send current pane → any window (fzf)                |
+| `ctrl+h/j/k/l`    | Navigate panes (vim-tmux-navigator)                 |
+| `prefix + {` / `}` | Swap pane up/down                                  |
 
-To pull a pane from another window into the current one:
-```
-prefix + : join-pane -s <window-index>
-```
+---
+
+## Window management
+
+| Binding           | Action                                              |
+|-------------------|-----------------------------------------------------|
+| `prefix + T`      | Move current window → another session (fzf)         |
+| `prefix + W`      | Swap current window with another in session (fzf)   |
+| `prefix + <`      | Swap window left / right (built-in menu)            |
 
 ---
 

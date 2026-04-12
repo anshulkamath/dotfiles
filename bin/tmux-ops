@@ -1,0 +1,98 @@
+#!/bin/bash
+# tmux-ops — fzf-powered pane/window/session manipulation
+#
+# Subcommands:
+#   pull         pull a pane from another window into the current one
+#   send         send the current pane to another window
+#   move-window  move the current window to another session
+#   swap-window  swap the current window with another in this session
+#   move         move pane in a direction; reflow layout if no neighbor exists
+
+set -euo pipefail
+
+cmd="${1:-}"
+
+current_session() { tmux display-message -p '#{session_name}'; }
+current_window()  { tmux display-message -p '#{session_name}:#{window_index}'; }
+
+pull() {
+  local cur
+  cur="$(current_window)"
+
+  local selection
+  selection=$(tmux list-panes -a \
+    -F '#{session_name}:#{window_index}.#{pane_index}  [#{window_name}] #{pane_current_command}  #{pane_current_path}' \
+    | grep -v "^${cur}\." \
+    | fzf --prompt=" pull pane → here: " --reverse --no-sort) || return 0
+
+  tmux join-pane -s "${selection%% *}"
+}
+
+send() {
+  local cur
+  cur="$(current_window)"
+
+  local selection
+  selection=$(tmux list-windows -a \
+    -F '#{session_name}:#{window_index}  [#{session_name}] #{window_name}' \
+    | grep -v "^${cur} " \
+    | fzf --prompt=" send pane → window: " --reverse --no-sort) || return 0
+
+  tmux join-pane -t "${selection%% *}"
+}
+
+move_window() {
+  local cur_session
+  cur_session="$(current_session)"
+
+  local selection
+  selection=$(tmux list-sessions -F '#{session_name}' \
+    | grep -v "^${cur_session}$" \
+    | fzf --prompt=" move window → session: " --reverse --no-sort) || return 0
+
+  tmux move-window -t "${selection}:"
+}
+
+swap_window() {
+  local cur
+  cur="$(current_window)"
+
+  local selection
+  selection=$(tmux list-windows \
+    -F '#{session_name}:#{window_index}  #{window_name}' \
+    | grep -v "^${cur} " \
+    | fzf --prompt=" swap window with: " --reverse --no-sort) || return 0
+
+  tmux swap-window -t "${selection%% *}"
+}
+
+move() {
+  local dir="${1:-}"
+  local tmux_dir reflow_layout
+
+  case "$dir" in
+    left)  tmux_dir='{left-of}';  reflow_layout='even-horizontal' ;;
+    right) tmux_dir='{right-of}'; reflow_layout='even-horizontal' ;;
+    up)    tmux_dir='{up-of}';    reflow_layout='even-vertical'   ;;
+    down)  tmux_dir='{down-of}';  reflow_layout='even-vertical'   ;;
+    *)
+      echo "Usage: tmux-ops move {left|right|up|down}" >&2
+      exit 1
+      ;;
+  esac
+
+  # Try to swap with the neighbor; if none exists, reflow the layout axis
+  tmux swap-pane -t "$tmux_dir" 2>/dev/null || tmux select-layout "$reflow_layout"
+}
+
+case "$cmd" in
+  pull)        pull ;;
+  send)        send ;;
+  move-window) move_window ;;
+  swap-window) swap_window ;;
+  move)        move "${2:-}" ;;
+  *)
+    echo "Usage: tmux-ops {pull|send|move-window|swap-window|move}" >&2
+    exit 1
+    ;;
+esac

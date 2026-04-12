@@ -1,0 +1,21 @@
+#!/bin/bash
+# tmux-detach-pane — remove current pane from its window and park it as a detached session
+set -euo pipefail
+
+pane_id="$(tmux display-message -p '#{pane_id}')"
+
+# Name the session after the pane's current directory; append timestamp if taken
+base="$(tmux display-message -p '#{b:pane_current_path}')"
+session_name="$base"
+if tmux has-session -t "$session_name" 2>/dev/null; then
+  session_name="${base}-$(date +%s)"
+fi
+
+# Create the destination session (captures the temp window id so we can kill it)
+temp_window="$(tmux new-session -d -s "$session_name" -P -F '#{window_id}')"
+
+# Move the pane into the new session as its own window
+tmux move-pane -d -s "$pane_id" -t "${session_name}:"
+
+# Kill the empty window that new-session created
+tmux kill-window -t "$temp_window"
