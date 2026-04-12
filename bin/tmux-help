@@ -39,7 +39,7 @@ cat << 'EOF' | fzf \
 
  SCRATCH POPUPS
    prefix + g          scratch popup (current dir); splits pane if already in scratch
-   prefix + G          git scratch (current dir)
+   prefix + G          tmp scratch (/tmp)
 
  PROJECT SWITCHER  (ctrl+])
    ctrl+] → n          notes  ~/Developer/personal/notes
