@@ -8,6 +8,7 @@ export GOPRIVATE="github.com/fluidstackio*"
 
 # home configurations
 export ASDF_DATA_DIR="$XDG_CONFIG_HOME/asdf"
+export BUN_INSTALL="$HOME/.bun"
 
 # path expansions
 export PATH="$GOPATH/bin:$PATH"
@@ -15,6 +16,7 @@ export PATH="$HOME/.config/bin:$PATH"
 export PATH="$HOME/.rd/bin:$PATH"
 export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+export PATH="$BUN_INSTALL:$PATH"
 
 # Bug with colima: https://github.com/k3d-io/k3d/issues/1449
 export K3D_FIX_DNS=0
