@@ -1,0 +1,16 @@
+#!/bin/bash
+# tmux-new-window — create a new named tmux session and open it in a new Kitty tab
+set -euo pipefail
+
+session_name="${1:-}"
+
+if [ -z "$session_name" ]; then
+  echo "Usage: tmux-new-window <session-name>" >&2
+  exit 1
+fi
+
+# Create detached session if it doesn't already exist
+tmux new-session -d -s "$session_name" 2>/dev/null || true
+
+# Open a new Kitty tab attached to the session
+kitty @ launch --type=tab --tab-title "$session_name" -- attach "$session_name" > /dev/null 2>&1

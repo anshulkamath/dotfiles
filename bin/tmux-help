@@ -33,7 +33,7 @@ cat << 'EOF' | fzf \
    prefix + W          swap window with another in this session (fzf)
 
  SESSIONS
-   prefix + N          new session → opens in a new Kitty window
+   prefix + N          new window → opens in a new Kitty tab
    prefix + s          interactive session + window tree
    prefix + d          detach (session stays alive)
 
@@ -44,6 +44,7 @@ cat << 'EOF' | fzf \
  PROJECT SWITCHER  (ctrl+])
    ctrl+] → n          notes  ~/Developer/personal/notes
    ctrl+] → .          dotfiles  ~/Developer/public/dotfiles
+   ctrl+] → o          fzf pick any dir in ~/Developer → new Kitty tab
 
  CLAUDE PROJECTS  (ctrl+\)
    ctrl+\ → n          notes
