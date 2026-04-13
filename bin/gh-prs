@@ -70,12 +70,7 @@ def fmt_merge(pr):
 def col(color, text):
     return f'{color}{text}{RESET}'
 
-def main():
-    owner, repo = get_current_repo()
-    if not owner:
-        print(f'{RED}not inside a GitHub repo{RESET}')
-        sys.exit(1)
-
+def fetch_fzf_input(owner, repo):
     raw = subprocess.run(
         ['gh', 'api', 'graphql',
          '-f', f'query={QUERY}',
@@ -84,16 +79,15 @@ def main():
         capture_output=True, text=True
     )
     if raw.returncode != 0:
-        print(f'{RED}gh api failed:{RESET} {raw.stderr.strip()}')
-        sys.exit(1)
+        return None, raw.stderr.strip()
 
     data = json.loads(raw.stdout)
     prs = data['data']['repository']['pullRequests']['nodes']
 
+    header = f'{"STATUS":<7} {"CI":<5} {"REV":<6} {"M":<2}  {"#":<7}  TITLE'
+
     if not prs:
-        print(f'\n  {DIM}no open PRs in {owner}/{repo}{RESET}\n\n  press any key...')
-        sys.stdin.read(1)
-        return
+        return f'__hdr__\t{header}\n__empty__\t{DIM}no open PRs in {owner}/{repo}{RESET}', None
 
     lines = []
     for pr in prs:
@@ -116,9 +110,27 @@ def main():
         )
         lines.append(f'{url}\t{display}')
 
-    header = f'{"STATUS":<7}  {"CI":<5}  {"REV":<6}  {"M":<2}  {"#":<7}  TITLE'
+    return f'__hdr__\t{header}\n' + '\n'.join(lines), None
 
-    fzf_input = f'__hdr__\t{header}\n' + '\n'.join(lines)
+
+def main():
+    list_only = '--list-only' in sys.argv
+
+    owner, repo = get_current_repo()
+    if not owner:
+        print(f'{RED}not inside a GitHub repo{RESET}')
+        sys.exit(1)
+
+    fzf_input, err = fetch_fzf_input(owner, repo)
+    if err:
+        print(f'{RED}gh api failed:{RESET} {err}')
+        sys.exit(1)
+
+    if list_only:
+        print(fzf_input, end='')
+        return
+
+    script = os.path.abspath(__file__)
 
     result = subprocess.run(
         ['fzf',
@@ -126,8 +138,13 @@ def main():
          '--layout=reverse-list', '--header-lines=1',
          '--delimiter=\t', '--with-nth=2',
          f'--prompt= {owner}/{repo}  ',
-         '--header=enter → open in browser   q/esc → close',
+         '--header=enter → open in browser   r → reload   q/esc → close\n'
+         'status: ● open  ⊘ draft\n'
+         'ci:     ✓ pass  ✗ fail  ⏳ pending  · none\n'
+         'rev:    ✓ approved  ✗ changes requested  ? required  · none\n'
+         'M:      ✓ mergeable  ⚡ conflict  · unknown',
          '--color=header:italic:dim',
+         f'--bind=r:reload({script} --list-only)',
          '--bind=q:abort,esc:abort'],
         input=fzf_input, text=True, stdout=subprocess.PIPE
     )
