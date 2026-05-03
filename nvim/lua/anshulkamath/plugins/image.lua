@@ -1,0 +1,26 @@
+return {
+	"3rd/image.nvim",
+	build = false,
+	opts = {
+		backend = "kitty",
+		processor = "magick_cli",
+		kitty_method = "unicode-placeholders",
+		integrations = {
+			markdown = {
+				enabled = true,
+				clear_in_insert_mode = true,
+				download_remote_images = true,
+				only_render_image_at_cursor = true,
+				filetypes = { "markdown" },
+			},
+		},
+		max_width = 80,
+		max_height = 24,
+		max_height_window_percentage = 40,
+		max_width_window_percentage = 80,
+		window_overlap_clear_enabled = true,
+		window_overlap_clear_ft_ignore = { "cmp_menu", "cmp_docs", "" },
+		editor_only_render_when_focused = true,
+		tmux_show_only_in_active_window = true,
+	},
+}
