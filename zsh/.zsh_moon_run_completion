@@ -1,0 +1,32 @@
+#!/bin/zsh
+# Source AFTER `moon completions --shell zsh` — wraps _moon to add project:task
+# completion for `moon run` while preserving all original flag/subcommand completion.
+
+# Stash the generated _moon before we overwrite it.
+if (( ${+functions[_moon]} )); then
+  functions[_moon_orig]="${functions[_moon]}"
+fi
+
+_moon_targets() {
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/moon-targets"
+  if [[ ! -f "$cache" ]] || [[ -n "$(find "$cache" -mmin +1 2>/dev/null)" ]]; then
+    moon query tasks 2>/dev/null \
+      | jq -r '.tasks | to_entries[] | .key as $p | .value | keys[] | "\($p):\(.)"' \
+      > "$cache" 2>/dev/null
+  fi
+  local cur="${words[CURRENT]}"
+  if [[ "$cur" == *:* ]]; then
+    grep "^${cur%%:*}:" "$cache"
+  else
+    cat "$cache"
+  fi
+}
+
+_moon() {
+  # Intercept positional target args for `moon run`; delegate everything else.
+  if [[ "${words[2]}" == "run" ]] && (( CURRENT >= 3 )) && [[ "${words[CURRENT]}" != -* ]]; then
+    compadd -- $(_moon_targets)
+    return
+  fi
+  _moon_orig "$@"
+}

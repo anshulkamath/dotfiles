@@ -44,6 +44,7 @@ fi
 
 if which moon > /dev/null 2>&1; then
     eval "$(moon completions --shell zsh)" > /dev/null
+    source ~/.config/zsh/.zsh_moon_run_completion
 fi
 
 if which jj > /dev/null 2>&1; then
@@ -61,3 +62,4 @@ export PATH="$PROTO_HOME/shims:$PROTO_HOME/bin:$PATH";
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
