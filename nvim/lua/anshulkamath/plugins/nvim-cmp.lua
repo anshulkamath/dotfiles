@@ -18,8 +18,8 @@ return {
 			mapping = cmp.mapping.preset.insert({
 				["<C-p>"] = cmp.mapping.select_prev_item(),
 				["<C-n>"] = cmp.mapping.select_next_item(),
-				['<Tab>'] = cmp.mapping.confirm({ select = true }),
-				['<C-e>'] = cmp.mapping.abort(),
+				["<Tab>"] = cmp.mapping.confirm({ select = true }),
+				["<C-e>"] = cmp.mapping.abort(),
 			}),
 
 			-- sources for autocompletion
@@ -39,14 +39,13 @@ return {
 
 			window = {
 				completion = cmp.config.window.bordered({
-					border = 'rounded',
+					border = "rounded",
 					max_height = 10,
 				}),
 				documentation = cmp.config.window.bordered(),
 			},
 
-			entries = {name = 'custom', selection_order = 'near_cursor' }
-
+			entries = { name = "custom", selection_order = "near_cursor" },
 		})
 	end,
 }
