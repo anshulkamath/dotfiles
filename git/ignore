@@ -53,3 +53,9 @@ SESSION_SUMMARY.md
 *node_modules*
 *.vite*
 ws-*
+*.ignore.*
+
+# claude
+**/.claude/scheduled_tasks.lock
+
+**/plans/**/*.md
