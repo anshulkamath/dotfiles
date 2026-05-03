@@ -13,6 +13,12 @@ return {
 				json = { "prettier" },
 				markdown = { "prettier" },
 			},
+			-- Honor sembr line breaks instead of reflowing prose to print-width.
+			formatters = {
+				prettier = {
+					prepend_args = { "--prose-wrap", "preserve" },
+				},
+			},
 			format_on_save = {
 				timeout_ms = 1000,
 				lsp_fallback = true,
