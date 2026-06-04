@@ -41,3 +41,10 @@ set undofile
 set undodir=$HOME/.vim/undodir
 set undolevels=1000
 set undoreload=10000
+
+" Reload files changed outside of vim
+set autoread
+augroup auto_checktime
+  autocmd!
+  autocmd BufEnter,FocusGained * checktime
+augroup END

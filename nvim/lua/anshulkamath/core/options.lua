@@ -41,3 +41,10 @@ opt.isfname:append("@-@")
 opt.updatetime = 50
 
 opt.colorcolumn = "80"
+
+-- reload files changed outside of vim
+opt.autoread = true
+vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained" }, {
+	group = vim.api.nvim_create_augroup("auto_checktime", { clear = true }),
+	command = "checktime",
+})

@@ -59,6 +59,9 @@ fi
 export PROTO_HOME="$XDG_DATA_HOME/proto";
 export PATH="$PROTO_HOME/shims:$PROTO_HOME/bin:$PATH";
 
+# npm globals go to ~/.local so ~/.local/bin (already on PATH) gets the bins
+export NPM_CONFIG_PREFIX="$HOME/.local"
+
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"

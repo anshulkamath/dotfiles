@@ -6,6 +6,7 @@ return {
 		{ "<leader>jj", "<cmd>J log<CR>", desc = "jj log" },
 		{ "<leader>js", "<cmd>J status<CR>", desc = "jj status" },
 		{ "<leader>jd", "<cmd>J diff<CR>", desc = "jj diff" },
+		{ "<leader>jc", "<cmd>J commit<CR>", desc = "jj commit" },
 		{ "<leader>jn", "<cmd>J new<CR>", desc = "jj new change" },
 		{ "<leader>je", "<cmd>J edit<CR>", desc = "jj edit revision" },
 		{ "<leader>jD", "<cmd>J describe<CR>", desc = "jj describe" },
