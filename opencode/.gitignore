@@ -1,0 +1,7 @@
+# Ephemeral runtime state
+data/
+logs/
+sessions/
+
+# Provider credentials — re-authenticate on new machines
+*.local.json

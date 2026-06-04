@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-5",
+  "providers": {
+    "anthropic": {
+      "name": "Anthropic",
+      "apiKey": "${ANTHROPIC_API_KEY}"
+    },
+    "openai": {
+      "name": "OpenAI",
+      "apiKey": "${OPENAI_API_KEY}"
+    }
+  }
+}
