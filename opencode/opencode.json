@@ -9,5 +9,13 @@
         "apiKey": "dummy"
       }
     }
+  },
+  "instructions": [
+    "~/Developer/personal/codex/rules/*.md"
+  ],
+  "skills": {
+    "paths": [
+      "~/Developer/personal/codex/skills"
+    ]
   }
 }

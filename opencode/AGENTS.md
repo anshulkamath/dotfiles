@@ -1,3 +1,4 @@
 # Global Agent Instructions
 
-See `~/.config/cline/rules/` for shared project rules.
+Rules and skills are loaded from the codex agent runtime at `~/Developer/personal/codex/`.
+See `opencode.json` for the exact paths (`instructions`, `skills.paths`).

@@ -29,6 +29,7 @@ source ~/.config/zsh/.zsh_packages
 	source /opt/homebrew/Caskroom/gcloud-cli/latest/google-cloud-sdk/completion.zsh.inc
 
 test -f ~/.config/zsh/envs.work && . $_ > /dev/null 2>&1
+test -f "$HOME/Developer/personal/codex/.env.example" && source "$_"
 
 if which fzf > /dev/null 2>&1; then
 	eval "$(fzf --zsh)" > /dev/null
