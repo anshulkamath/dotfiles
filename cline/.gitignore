@@ -1,0 +1,13 @@
+# Ephemeral runtime state — not portable across machines
+data/db/
+data/sessions/
+data/logs/
+data/locks/
+cron/
+worktrees/
+
+# Provider credentials — re-authenticate on new machines with: cline auth
+data/settings/providers.json
+
+# Skills are sourced from ~/Developer/fluidstack/codex/skills — symlink on setup
+skills

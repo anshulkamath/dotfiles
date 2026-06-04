@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "lastUsedProvider": "claude-code",
+  "providers": {
+    "claude-code": {
+      "settings": {
+        "provider": "claude-code",
+        "model": "claude-sonnet-4-6",
+        "pathToClaudeCodeExecutable": "{{CLAUDE_PATH}}"
+      },
+      "updatedAt": "",
+      "tokenSource": "manual"
+    }
+  }
+}
