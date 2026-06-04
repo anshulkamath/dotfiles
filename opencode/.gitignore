@@ -5,3 +5,8 @@ sessions/
 
 # Provider credentials — re-authenticate on new machines
 *.local.json
+
+# opencode-managed plugin scaffolding — regenerated on first run
+package.json
+package-lock.json
+node_modules/
