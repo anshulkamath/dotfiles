@@ -21,9 +21,12 @@ pull() {
 
   local selection
   selection=$(tmux list-panes -a \
-    -F '#{session_name}:#{window_index}.#{pane_index}  [#{window_name}] #{pane_current_command}  #{pane_current_path}' \
+    -F '#{session_name}:#{window_index}.#{pane_index}' \
     | grep -v "^${cur}\." \
-    | fzf --prompt=" pull pane → here: " --reverse --no-sort) || return 0
+    | fzf --prompt=" pull pane → here: " --reverse --no-sort \
+          --preview 'tmux capture-pane -p -e -t {1}' \
+          --preview-window 'right:70%' \
+          --bind "x:execute-silent(tmux kill-pane -t {1})+reload(tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index}' | grep -v '^${cur}\.')") || return 0
 
   tmux join-pane -s "${selection%% *}"
 }
