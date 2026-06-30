@@ -61,3 +61,6 @@ ws-*
 **/plans/**/*.md
 
 **/personal/**
+
+.claude/skills/gitnexus
+*gitnexus.md

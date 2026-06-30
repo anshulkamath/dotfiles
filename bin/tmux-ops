@@ -37,9 +37,12 @@ send() {
 
   local selection
   selection=$(tmux list-windows -a \
-    -F '#{session_name}:#{window_index}  [#{session_name}] #{window_name}' \
+    -F '#{session_name}:#{window_index}' \
     | grep -v "^${cur} " \
-    | fzf --prompt=" send pane → window: " --reverse --no-sort) || return 0
+    | fzf --prompt=" send pane → window: " --reverse --no-sort \
+          --preview 'tmux capture-pane -p -e -t {1}' \
+          --preview-window 'right:70%' \
+          --bind "x:execute-silent(tmux kill-window -t {1})+reload(tmux list-windows -a -F '#{session_name}:#{window_index}' | grep -v '^${cur} ')") || return 0
 
   tmux join-pane -t "${selection%% *}"
 }

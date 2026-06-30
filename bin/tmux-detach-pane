@@ -14,8 +14,11 @@ fi
 # Create the destination session (captures the temp window id so we can kill it)
 temp_window="$(tmux new-session -d -s "$session_name" -P -F '#{window_id}')"
 
-# Move the pane into the new session as its own window
-tmux move-pane -d -s "$pane_id" -t "${session_name}:"
+# Break the pane into a standalone window (still in original session, detached)
+broken_window="$(tmux break-pane -d -s "$pane_id" -P -F '#{window_id}')"
+
+# Move that window into the new session
+tmux move-window -s "$broken_window" -t "${session_name}:"
 
 # Kill the empty window that new-session created
 tmux kill-window -t "$temp_window"

@@ -17,5 +17,14 @@
     "paths": [
       "~/Developer/personal/codex/skills"
     ]
+  },
+  "mcp": {
+    "gitnexus": {
+      "type": "local",
+      "command": [
+        "/Users/anshulkamath/.npm/_npx/5e786f48223a616c/node_modules/.bin/gitnexus",
+        "mcp"
+      ]
+    }
   }
 }
