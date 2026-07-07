@@ -42,6 +42,19 @@ key-mapping.preset = 'qwerty'
 # Fallback value (if you omit the key): on-focused-monitor-changed = []
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
+# AeroSpace has no native "exclude app from management" feature (see
+# https://github.com/nikitabobko/AeroSpace/issues/2 - #552 and #829 were both
+# closed as duplicates of it). This is the community workaround: re-pin
+# Granola to whatever workspace is currently focused on every workspace
+# switch, simulating sticky/all-workspaces behavior. Combined with the
+# 'layout floating' rule below so it never gets tiled.
+# See: https://nikitabobko.github.io/AeroSpace/guide#exec-on-workspace-change
+exec-on-workspace-change = ['/bin/bash', '-c', '''
+  aerospace list-windows --monitor all --app-bundle-id com.granola.app --format "%{window-id}" | while read -r win_id; do
+    [ -n "$win_id" ] && aerospace move-node-to-workspace --window-id "$win_id" "$AEROSPACE_FOCUSED_WORKSPACE"
+  done
+''']
+
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Possible values:
 # - Constant:     gaps.outer.top = 8
@@ -292,4 +305,4 @@ run = ['move-node-to-workspace O']
 
 [[on-window-detected]]
 if.app-id = 'com.granola.app'
-run = ['layout floating', 'move-node-to-workspace G']
+run = ['layout floating']
