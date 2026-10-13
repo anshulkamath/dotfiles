@@ -1,0 +1,38 @@
+#:schema https://docs.jj-vcs.dev/latest/config-schema.json
+[user]
+name = "Anshul Kamath"
+email = "anshulkam@gmail.com"
+
+[colors]
+"commit_id prefix" = { bold = true }
+
+[ui]
+default-command = ["log"]
+auto-refresh = true
+merge-editor = "vimdiff"
+
+[git]
+private-commits = "description(glob:\"priv*\")"
+
+[templates]
+git_push_bookmark = '"anshul/push-" ++ change_id.short()'
+
+[template-aliases]
+leaves = 'heads(main:: & ~empty())'
+
+[aliases]
+mark = ["bookmark", "set"]
+unmark = ["bookmark", "forget"]
+track = ["bookmark", "track"]
+forget = ["bookmark", "forget"]
+push = ["git", "push"]
+fetch = ["git", "fetch"]
+ov = ["log", "-r", "parents(main, 3)::"]
+rebook = ["util", "exec", "--", "sh", "-c", "jj fetch && jj rebase -d main@origin --skip-emptied"]
+mm = ["util", "exec", "--", "bash", "-c", """
+set -euo pipefail
+jj new main@origin        # Clear any hanging "new"
+jj new -r 'heads(mine()) ~empty()'
+""", ""]
+sweep = ["util", "exec", "--", "bash", "-c", "jj log -r \"mutable() & descendants(ancestors(${1:-main})) ~ descendants(${1:-main})\"", ""]
+

@@ -14,8 +14,7 @@ test -L "$xdg_config_home/kitty" || ln -sfn "$PWD/kitty" $_
 test -L "$xdg_config_home/nvim" || ln -sfn "$PWD/nvim" $_
 test -L "$xdg_config_home/tmux" || ln -sfn "$PWD/tmux" $_
 test -L "$xdg_config_home/zsh" || ln -sfn "$PWD/zsh" $_
-test -L "$xdg_config_home/ngrok" || ln -sfn "$PWD/ngrok" $_
-test -L "$xdg_config_home/opencode" || ln -sfn "$PWD/opencode" $_
+test -L "$xdg_config_home/jj" || ln -sfn "$PWD/jj" $_
 
 # link bash profile and bash rc explicitly
 test -L "$HOME/.bashrc" || ln -sfn "$xdg_config_home/bash/bashrc" $_
@@ -52,7 +51,7 @@ npm install -g opencode-with-claude
 git submodule update --init --recursive
 
 # init undodir
-mkdir -p $HOME/.vim/undodir
+test -d "$HOME/.vim/undodir" || mkdir -p $HOME/.vim/undodir
 
 if [[ -f "$PWD/macos/defaults" ]]; then
     bash $_
